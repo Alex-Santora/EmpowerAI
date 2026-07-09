@@ -1,5 +1,5 @@
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta";
-const DEFAULT_MODEL = "gemini-3.5-flash";
+const DEFAULT_MODEL = "gemini-3.1-flash-lite";
 const MAX_EXTRA_DETAILS = 200;
 const REQUEST_TIMEOUT_MS = 12000;
 
