@@ -3,6 +3,14 @@ const DEFAULT_MODEL = "gemini-3.5-flash";
 const MAX_EXTRA_DETAILS = 200;
 const REQUEST_TIMEOUT_MS = 12000;
 
+class ApiError extends Error {
+  constructor(statusCode, code, message) {
+    super(message);
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
 const validSkillLevels = new Set(["Beginner", "Intermediate", "Advanced"]);
 const validInterests = new Set([
   "Sports",
@@ -193,7 +201,32 @@ async function callGemini(prompt) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Gemini request failed: ${response.status} ${errorText}`);
+      let errorPayload = null;
+
+      try {
+        errorPayload = JSON.parse(errorText);
+      } catch {
+        errorPayload = null;
+      }
+
+      const geminiError = errorPayload?.error;
+      const geminiMessage =
+        geminiError?.message || `Gemini request failed with ${response.status}.`;
+      const geminiStatus = String(geminiError?.status || "").toUpperCase();
+      const quotaExceeded =
+        response.status === 429 ||
+        geminiStatus === "RESOURCE_EXHAUSTED" ||
+        /quota|rate limit|resource exhausted/i.test(geminiMessage);
+
+      if (quotaExceeded) {
+        throw new ApiError(
+          429,
+          "quota_exceeded",
+          "The AI generator has reached its free limit for now. Please try again later.",
+        );
+      }
+
+      throw new ApiError(response.status, "gemini_error", geminiMessage);
     }
 
     const data = await response.json();
@@ -242,7 +275,16 @@ export default async function handler(req, res) {
     sendJson(res, 200, { projectIdea });
   } catch (error) {
     console.error(error);
+    if (error instanceof ApiError) {
+      sendJson(res, error.statusCode, {
+        code: error.code,
+        error: error.message,
+      });
+      return;
+    }
+
     sendJson(res, 500, {
+      code: "temporary_unavailable",
       error: "The project generator is temporarily unavailable.",
     });
   }
