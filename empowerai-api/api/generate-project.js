@@ -212,20 +212,6 @@ async function callGemini(prompt) {
       const geminiError = errorPayload?.error;
       const geminiMessage =
         geminiError?.message || `Gemini request failed with ${response.status}.`;
-      const geminiStatus = String(geminiError?.status || "").toUpperCase();
-      const quotaExceeded =
-        response.status === 429 ||
-        geminiStatus === "RESOURCE_EXHAUSTED" ||
-        /quota|rate limit|resource exhausted/i.test(geminiMessage);
-
-      if (quotaExceeded) {
-        throw new ApiError(
-          429,
-          "quota_exceeded",
-          "The AI generator has reached its free limit for now. Please try again later.",
-        );
-      }
-
       throw new ApiError(response.status, "gemini_error", geminiMessage);
     }
 
@@ -285,7 +271,7 @@ export default async function handler(req, res) {
 
     sendJson(res, 500, {
       code: "temporary_unavailable",
-      error: "The project generator is temporarily unavailable.",
+      error: error instanceof Error ? error.message : "Unknown server error.",
     });
   }
 }
