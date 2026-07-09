@@ -736,6 +736,7 @@ function Courses() {
   );
 }
 const PROJECT_BACKEND_URL = "https://empower-ai-six.vercel.app/api/generate-project";
+const QUOTA_LOCK_KEY = "empowerai-project-generator-quota-lock";
 const skillLevels = ["Beginner", "Intermediate", "Advanced"];
 const projectInterests = [
   "Sports",
@@ -1135,18 +1136,39 @@ function Projects() {
   const [loading, setLoading] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
   const [result, setResult] = useState(null);
+  const [quotaUnavailable, setQuotaUnavailable] = useState(false);
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem(QUOTA_LOCK_KEY) === "true") {
+      setQuotaUnavailable(true);
+      setValidationMessage(
+        "Generate Project Idea is temporarily unavailable because the AI generator reached its free limit. Please try again later.",
+      );
+    }
+  }, []);
 
   const updateProfile = (key, value) => {
     setProfile((current) => ({ ...current, [key]: value }));
-    setValidationMessage("");
+    if (!quotaUnavailable) {
+      setValidationMessage("");
+    }
   };
 
   const resetGenerator = () => {
     setResult(null);
-    setValidationMessage("");
+    if (!quotaUnavailable) {
+      setValidationMessage("");
+    }
   };
 
   const generateProject = async () => {
+    if (quotaUnavailable) {
+      setValidationMessage(
+        "Generate Project Idea is temporarily unavailable because the AI generator reached its free limit. Please try again later.",
+      );
+      return;
+    }
+
     if (!profile.skillLevel || !profile.interest || !profile.timeCommitment) {
       setValidationMessage(
         "Choose a skill level, interest, and time commitment before generating.",
@@ -1171,20 +1193,39 @@ function Projects() {
 
       if (!response.ok) {
         let detail = `API returned ${response.status}`;
+        let errorCode = "";
         try {
           const errorPayload = await response.json();
+          errorCode = errorPayload?.code || "";
           if (errorPayload?.error) {
             detail = `${detail}: ${errorPayload.error}`;
           }
         } catch {
           // Ignore JSON parsing issues and keep the status detail.
         }
+
+        if (response.status === 429 || errorCode === "quota_exceeded") {
+          throw new Error("QUOTA_EXCEEDED");
+        }
+
         throw new Error(detail);
       }
 
       const data = await response.json();
+      window.sessionStorage.removeItem(QUOTA_LOCK_KEY);
+      setQuotaUnavailable(false);
       setResult({ source: "api", ...parseProjectIdea(data.projectIdea) });
     } catch (error) {
+      if (error instanceof Error && error.message === "QUOTA_EXCEEDED") {
+        window.sessionStorage.setItem(QUOTA_LOCK_KEY, "true");
+        setQuotaUnavailable(true);
+        setResult(null);
+        setValidationMessage(
+          "Generate Project Idea is temporarily unavailable because the AI generator reached its free limit. Please try again later.",
+        );
+        return;
+      }
+
       console.error("Project generator fallback:", error);
       setResult(
         buildFallbackProject(
@@ -1264,12 +1305,17 @@ function Projects() {
             <button
               className="button generateProjectButton"
               onClick={generateProject}
-              disabled={loading}
+              disabled={loading || quotaUnavailable}
             >
               {loading ? (
                 <>
                   <RefreshCw className="spinIcon" />
                   Generating
+                </>
+              ) : quotaUnavailable ? (
+                <>
+                  <RefreshCw />
+                  Temporarily Unavailable
                 </>
               ) : (
                 <>
@@ -1290,10 +1336,30 @@ function Projects() {
                 </p>
               </div>
             )}
+            {!loading && !result && quotaUnavailable && (
+              <div className="emptyResultCard">
+                <RefreshCw />
+                <h2>The AI project mentor is temporarily unavailable.</h2>
+                <div>
+                  <span>
+                    <CheckCircle2 />
+                    Free Gemini limit reached
+                  </span>
+                  <span>
+                    <CheckCircle2 />
+                    Button disabled for now
+                  </span>
+                  <span>
+                    <CheckCircle2 />
+                    Try again later
+                  </span>
+                </div>
+              </div>
+            )}
             {!loading && result && (
               <ProjectResultCard result={result} onReset={resetGenerator} />
             )}
-            {!loading && !result && (
+            {!loading && !result && !quotaUnavailable && (
               <div className="emptyResultCard">
                 <FileCode2 />
                 <h2>Your custom project plan will appear here.</h2>
