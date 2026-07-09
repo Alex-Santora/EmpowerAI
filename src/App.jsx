@@ -18,7 +18,6 @@ import {
   Clock,
   Code2,
   FileCode2,
-  FileText,
   GraduationCap,
   HeartHandshake,
   Lightbulb,
@@ -39,6 +38,7 @@ import elementsOfAiProviderLogo from "./logos/eoai.png";
 import michiganLogo from "./logos/Michigan.png";
 import founderPhoto from "./pfp/me.jpeg";
 import noahPhoto from "./pfp/noah.png";
+import jakePhoto from "./pfp/jf.png";
 const nav = [
   ["Mission", "/"],
   ["Courses", "/courses"],
@@ -46,6 +46,8 @@ const nav = [
   ["Mentorship", "/mentorship"],
   ["Acknowledgments", "/acknowledgments"],
 ];
+const primaryNav = nav.filter(([name]) => name !== "Acknowledgments");
+const acknowledgmentNav = nav.find(([name]) => name === "Acknowledgments");
 function Logo() {
   return (
     <Link className="logo" to="/">
@@ -64,13 +66,18 @@ function Header() {
     <header>
       <div className="nav shell">
         <Logo />
-        <nav>
-          {nav.map(([n, p]) => (
+        <nav className="primaryNav" aria-label="Primary navigation">
+          {primaryNav.map(([n, p]) => (
             <NavLink key={n} to={p}>
               {n}
             </NavLink>
           ))}
         </nav>
+        {acknowledgmentNav && (
+          <NavLink className="ackNavLink" to={acknowledgmentNav[1]}>
+            {acknowledgmentNav[0]}
+          </NavLink>
+        )}
         <button
           className="menu"
           aria-label="Toggle navigation"
@@ -1323,32 +1330,6 @@ function Projects() {
     </Layout>
   );
 }
-const mentors = [
-  [
-    GraduationCap,
-    "Beginner AI Mentor",
-    "Helps learners choose a path and start a first AI project.",
-    ["Learning plans", "AI foundations", "Project selection"],
-  ],
-  [
-    Code2,
-    "Project Mentor",
-    "Helps students debug, strengthen repositories, and finish portfolio work.",
-    ["Code review", "Debugging", "Portfolio guidance"],
-  ],
-  [
-    FileText,
-    "Research Mentor",
-    "Helps students read papers and design research-style experiments.",
-    ["Paper reading", "Experiments", "Reproducibility"],
-  ],
-  [
-    Users,
-    "Career Mentor",
-    "Helps with resumes, internships, and technical interview preparation.",
-    ["Resume review", "Internships", "Interview prep"],
-  ],
-];
 const mentorCards = [
   {
     name: "Alex Santora",
@@ -1384,27 +1365,29 @@ const mentorCards = [
     email: "noahandranaco@gmail.com",
     linkedin: "https://www.linkedin.com/in/noah-andronaco-b8a58a333/",
   },
-  ...mentors.map(([, title, description, skills]) => ({
-    name: title,
+  {
+    name: "Jake Fredericks",
     role: "Mentor",
-    school: "Coming soon",
-    description,
-    expertise: skills,
-  })),
+    school: "Bentley University",
+    photo: jakePhoto,
+    description:
+      "Fintech major with a cybersecurity minor focused on practical AI for financial analysis, data-driven decision making, and secure technology systems.",
+    expertise: [
+      "Python for Finance",
+      "Database Design and SQL",
+      "Applied Data Science",
+      "AI-Driven Financial Analysis",
+      "Cybersecurity-Aware AI Workflows",
+    ],
+    email: "jake.fredericks2@gmail.com",
+    linkedin: "https://www.linkedin.com/in/jakefredericks/",
+  },
 ];
 function MentorCard({ mentor }) {
-  const hasPhoto = Boolean(mentor.photo);
   return (
     <article className="mentorCard">
       <div className="mentorCardPhoto">
-        {hasPhoto ? (
-          <img src={mentor.photo} alt={mentor.name} />
-        ) : (
-          <div>
-            <Users />
-            <span>PLACEHOLDER</span>
-          </div>
-        )}
+        <img src={mentor.photo} alt={mentor.name} />
       </div>
       <div className="mentorCardBody">
         <h2>{mentor.name}</h2>
@@ -1466,8 +1449,8 @@ function Mentorship() {
     <Layout>
       <PageHero
         eyebrow="Human Guidance"
-        title="Meet Our Volenteer Mentors"
-        copy="Connect with EmpowerAI's founder and explore the guidance we are building for students."
+        title="Meet Our Volunteer Mentors"
+        copy="Connect with mentors who help students learn, build, and grow with AI."
       />
       <section className="content">
         <div className="shell">
@@ -1497,9 +1480,13 @@ function Mentorship() {
   );
 }
 function Acknowledgments() {
-  const mentorThanks = mentors.map(([, title, description]) => ({
-    title,
-    description,
+  const mentorThanks = mentorCards.map((mentor) => ({
+    name: mentor.name,
+    role: mentor.role,
+    photo: mentor.photo,
+    description:
+      mentor.expertise?.slice(0, 3).join(", ") ||
+      "Mentorship, student guidance, and community support",
   }));
   const providerThanks = {
     "University of Helsinki / MinnaLearn":
@@ -1584,19 +1571,17 @@ function Acknowledgments() {
             </div>
           </section>
           <section className="ackSection mentorThanks">
-            <span>MENTORS</span>
-            <h2>People who help learners keep going</h2>
+            <h2>Our Mentors</h2>
             <p>
-              We also recognize the volunteer mentor community we are building:
-              people willing to share context, patience, and practical
-              experience.
+              The dedicated mentors who help EmpowerAI students learn, build,
+              and keep moving forward.
             </p>
             <div className="mentorThanksGrid">
-              {mentorThanks.map(({ title, description }, i) => (
-                <article key={title}>
-                  <HeartHandshake />
-                  <small>{String(i + 1).padStart(2, "0")}</small>
-                  <h3>{title}</h3>
+              {mentorThanks.map(({ name, role, photo, description }) => (
+                <article key={name}>
+                  <img src={photo} alt={name} />
+                  <h3>{name}</h3>
+                  <strong>{role}</strong>
                   <p>{description}</p>
                 </article>
               ))}
