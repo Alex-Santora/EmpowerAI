@@ -735,7 +735,7 @@ function Courses() {
     </Layout>
   );
 }
-const PROJECT_BACKEND_URL = "REPLACE_WITH_BACKEND_URL";
+const PROJECT_BACKEND_URL = "empower-ai-six.vercel.app";
 const skillLevels = ["Beginner", "Intermediate", "Advanced"];
 const projectInterests = [
   "Sports",
