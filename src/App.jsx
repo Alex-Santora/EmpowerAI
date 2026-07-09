@@ -972,17 +972,18 @@ function parseProjectIdea(text) {
     plan: result.plan.length ? result.plan.slice(0, 6) : [],
   };
 }
-function buildFallbackProject(profile) {
+function buildFallbackProject(profile, detail = "") {
   const base = fallbackProjects[profile.interest] || fallbackProjects.Other;
   const tools =
     profile.tools.includes("No Preference") || profile.tools.length === 0
       ? base.tools
       : `${profile.tools.join(", ")}. Helpful free additions: ${base.tools}`;
+  const detailSuffix = detail ? ` (${detail})` : "";
 
   return {
     source: "fallback",
     message:
-      "The AI generator is busy right now, so here's a recommended project idea based on your answers.",
+      `The AI generator is busy right now, so here's a recommended project idea based on your answers${detailSuffix}.`,
     title: base.title,
     description:
       profile.extraDetails.length > 0
@@ -1169,13 +1170,28 @@ function Projects() {
       });
 
       if (!response.ok) {
-        throw new Error("Project API request failed.");
+        let detail = `API returned ${response.status}`;
+        try {
+          const errorPayload = await response.json();
+          if (errorPayload?.error) {
+            detail = `${detail}: ${errorPayload.error}`;
+          }
+        } catch {
+          // Ignore JSON parsing issues and keep the status detail.
+        }
+        throw new Error(detail);
       }
 
       const data = await response.json();
       setResult({ source: "api", ...parseProjectIdea(data.projectIdea) });
-    } catch {
-      setResult(buildFallbackProject(profile));
+    } catch (error) {
+      console.error("Project generator fallback:", error);
+      setResult(
+        buildFallbackProject(
+          profile,
+          error instanceof Error ? error.message : "Unknown error",
+        ),
+      );
     } finally {
       setLoading(false);
     }
