@@ -158,7 +158,7 @@ Keep the response clear, organized, and under 500 words.`;
 }
 
 async function callGemini(prompt) {
-  const apiKey = process.env."AQ.Ab8RN6KpD4q_qDSVVuPdX9HozkookOcawaQKHM-HyvjwMC-zdQ";
+  const apiKey = process.env.GEMINI_API_KEY;
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
 
   if (!apiKey) {
