@@ -736,7 +736,6 @@ function Courses() {
   );
 }
 const PROJECT_BACKEND_URL = "https://empower-ai-six.vercel.app/api/generate-project";
-const QUOTA_LOCK_KEY = "empowerai-project-generator-quota-lock";
 const skillLevels = ["Beginner", "Intermediate", "Advanced"];
 const projectInterests = [
   "Sports",
@@ -1138,15 +1137,6 @@ function Projects() {
   const [result, setResult] = useState(null);
   const [quotaUnavailable, setQuotaUnavailable] = useState(false);
 
-  useEffect(() => {
-    if (window.sessionStorage.getItem(QUOTA_LOCK_KEY) === "true") {
-      setQuotaUnavailable(true);
-      setValidationMessage(
-        "Generate Project Idea is temporarily unavailable because the AI generator reached its free limit. Please try again later.",
-      );
-    }
-  }, []);
-
   const updateProfile = (key, value) => {
     setProfile((current) => ({ ...current, [key]: value }));
     if (!quotaUnavailable) {
@@ -1212,12 +1202,10 @@ function Projects() {
       }
 
       const data = await response.json();
-      window.sessionStorage.removeItem(QUOTA_LOCK_KEY);
       setQuotaUnavailable(false);
       setResult({ source: "api", ...parseProjectIdea(data.projectIdea) });
     } catch (error) {
       if (error instanceof Error && error.message === "QUOTA_EXCEEDED") {
-        window.sessionStorage.setItem(QUOTA_LOCK_KEY, "true");
         setQuotaUnavailable(true);
         setResult(null);
         setValidationMessage(
