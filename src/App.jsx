@@ -105,17 +105,12 @@ function Footer() {
       <div className="shell footer">
         <Logo />
         <div className="footerLinks">
+          <a href="https://venmo.com/u/alexsantora10" target="_blank" rel="noreferrer">
+            Donate
+          </a>
           <Link to="/mentorship">Volunteer</Link>
           <Link to="/acknowledgments">Acknowledgments</Link>
           <Link to="/">Mission</Link>
-          <a
-            className="donationLink"
-            href="https://venmo.com/u/alexsantora10"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Donate
-          </a>
         </div>
         <p>Copyright 2026 EmpowerAI Foundation. </p>
       </div>
@@ -886,21 +881,6 @@ function AILiteracyIntro() {
         </div>
       </section>
 
-      <section className="aiLiteracyCallout">
-        <div>
-          <span>WHY THIS MATTERS</span>
-          <h3>Why AI literacy matters</h3>
-          <p>
-            AI literacy is not just about knowing how to use tools. It is about
-            understanding what AI is, what it can do, what it cannot do, and how
-            to question its results. Students who understand AI can use it more
-            effectively, avoid common mistakes, and build better projects.
-          </p>
-        </div>
-        <a className="aiStartButton" href="#ai-literacy-courses">
-          Start learning AI <ArrowRight />
-        </a>
-      </section>
     </section>
   );
 }
