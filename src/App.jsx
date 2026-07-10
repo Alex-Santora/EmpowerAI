@@ -108,6 +108,14 @@ function Footer() {
           <Link to="/mentorship">Volunteer</Link>
           <Link to="/acknowledgments">Acknowledgments</Link>
           <Link to="/">Mission</Link>
+          <a
+            className="donationLink"
+            href="https://venmo.com/u/alexsantora10"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Donate
+          </a>
         </div>
         <p>Copyright 2026 EmpowerAI Foundation. </p>
       </div>
@@ -559,6 +567,343 @@ const responsibleScenarios = [
     "Remove sensitive details before using AI.",
   ],
 ];
+const aiSimpleTerms = [
+  [
+    BrainCircuit,
+    "Pattern recognition",
+    "AI can find patterns in data, like identifying spam emails or recognizing faces in photos.",
+    "Example: a photo app groups pictures that contain the same person.",
+  ],
+  [
+    Clock,
+    "Prediction",
+    "AI can estimate what might happen next based on examples it has seen before.",
+    "Example: a navigation app predicts traffic or a writing tool predicts the next word.",
+  ],
+  [
+    WandSparkles,
+    "Generation",
+    "AI can create new content, including text, images, code, music, or study notes.",
+    "Example: a student asks for a practice quiz about biology vocabulary.",
+  ],
+  [
+    CheckCircle2,
+    "Decision support",
+    "AI can help people compare options and notice patterns, but it should not blindly replace human judgment.",
+    "Example: a teacher uses AI suggestions, then reviews them before assigning grades.",
+  ],
+];
+const aiWorkflowSteps = [
+  [
+    "01",
+    "Data",
+    "AI systems learn from examples such as text, images, numbers, audio, or user behavior.",
+  ],
+  [
+    "02",
+    "Training",
+    "The system looks for patterns in the data and adjusts its internal settings so it can make better predictions.",
+  ],
+  [
+    "03",
+    "Model",
+    "The trained system becomes a model, which is the part that takes an input and produces an output.",
+  ],
+  [
+    "04",
+    "Input",
+    "A user gives the model something to respond to, such as a question, image, sound, or dataset.",
+  ],
+  [
+    "05",
+    "Output",
+    "The model returns a prediction, answer, recommendation, classification, or generated result.",
+  ],
+];
+const aiTypes = [
+  [
+    Network,
+    "Machine Learning",
+    "Systems that learn patterns from data instead of being manually programmed for every rule.",
+  ],
+  [
+    BrainCircuit,
+    "Deep Learning",
+    "A type of machine learning that uses layered neural networks, often used for images, speech, and advanced language tools.",
+  ],
+  [
+    Sparkles,
+    "Generative AI",
+    "AI that creates new content such as text, images, code, video, or audio.",
+  ],
+  [
+    Bot,
+    "Large Language Models",
+    "AI systems trained on massive amounts of text that can write, summarize, answer questions, explain topics, and help with code.",
+  ],
+  [
+    BookOpen,
+    "Computer Vision",
+    "AI that works with images and video, such as object detection, medical imaging, or self-driving car perception.",
+  ],
+  [
+    RefreshCw,
+    "Recommendation Systems",
+    "AI that suggests content, products, videos, songs, or search results based on patterns in behavior.",
+  ],
+];
+const aiStrengths = [
+  "Finding patterns in large datasets",
+  "Summarizing information",
+  "Generating drafts and ideas",
+  "Classifying images, text, or sounds",
+  "Helping with coding and debugging",
+  "Making predictions when trained on useful data",
+  "Automating repetitive tasks",
+];
+const aiLimits = [
+  "Knowing whether something is actually true",
+  "Understanding context the way humans do",
+  "Explaining its reasoning perfectly",
+  "Handling situations outside its training data",
+  "Avoiding bias from flawed data",
+  "Keeping private information safe if used carelessly",
+  "Replacing human judgment in important decisions",
+];
+const aiExamples = [
+  [
+    "Search engines ranking results",
+    "AI compares your query with pages, links, and behavior patterns to decide what should appear first.",
+  ],
+  [
+    "TikTok, YouTube, Netflix, and Spotify recommendations",
+    "AI looks at viewing, listening, and interaction patterns to suggest what you might want next.",
+  ],
+  [
+    "Chatbots and virtual assistants",
+    "AI interprets language, predicts helpful responses, and turns requests into actions.",
+  ],
+  [
+    "Email spam filters",
+    "AI spots suspicious patterns in senders, wording, links, and past spam examples.",
+  ],
+  [
+    "Face ID and image recognition",
+    "AI detects visual patterns that help match a face or identify objects in an image.",
+  ],
+  [
+    "Google Translate and speech-to-text",
+    "AI maps patterns between languages or converts sound patterns into written words.",
+  ],
+  [
+    "Medical image analysis",
+    "AI can highlight patterns in scans that may need a trained professional's attention.",
+  ],
+  [
+    "Fraud detection in banking",
+    "AI watches for unusual transaction patterns that may signal risk.",
+  ],
+  [
+    "Navigation apps predicting traffic",
+    "AI combines maps, speed data, and recent travel patterns to estimate delays.",
+  ],
+  [
+    "Coding assistants",
+    "AI predicts code, explains errors, and suggests fixes from patterns in programming examples.",
+  ],
+];
+const aiVocabulary = [
+  ["Algorithm", "A set of instructions a computer follows."],
+  ["Data", "Information used to train or run an AI system."],
+  ["Model", "A trained AI system that takes inputs and produces outputs."],
+  ["Training", "The process where an AI system learns patterns from data."],
+  ["Prompt", "The instruction or question given to an AI tool."],
+  ["Output", "The answer, prediction, or generated result from the AI."],
+  ["Dataset", "A collection of examples used for training or testing."],
+  [
+    "Bias",
+    "When an AI system gives unfair or inaccurate results because of flawed data or design.",
+  ],
+  [
+    "Hallucination",
+    "When an AI system gives an answer that sounds confident but is false or unsupported.",
+  ],
+];
+function AILiteracyIntro() {
+  return (
+    <section className="aiLiteracyIntro" aria-labelledby="ai-literacy-title">
+      <div className="aiHeroCard">
+        <div className="aiHeroCopy">
+          <span>BEGINNER FOUNDATION</span>
+          <h2 id="ai-literacy-title">What is AI, really?</h2>
+          <p>
+            Artificial intelligence is a broad field of computer science focused
+            on building systems that can perform tasks that normally require
+            human intelligence. These tasks can include understanding language,
+            recognizing images, making predictions, recommending content,
+            generating text, or controlling robots. Modern AI usually works by
+            learning patterns from large amounts of data, then using those
+            patterns to respond to new inputs.
+          </p>
+          <p>
+            Put simply, AI is software that can recognize patterns, make
+            predictions, generate content, or help make decisions based on data.
+            It is not magic, not alive, and not actually thinking like a person.
+            It is a system trained or programmed to find patterns and produce
+            useful outputs.
+          </p>
+        </div>
+        <div className="aiHeroSignal" aria-hidden="true">
+          <span>
+            <BrainCircuit />
+          </span>
+          <b>Data</b>
+          <i />
+          <b>Patterns</b>
+          <i />
+          <b>Useful output</b>
+        </div>
+      </div>
+
+      <section className="aiLearningBlock" aria-labelledby="ai-simple-terms">
+        <div className="aiSectionHeading">
+          <span>CORE IDEA</span>
+          <h3 id="ai-simple-terms">AI in simple terms</h3>
+        </div>
+        <div className="aiSimpleGrid">
+          {aiSimpleTerms.map(([Icon, title, copy, example]) => (
+            <article key={title}>
+              <span className="aiIcon">
+                <Icon />
+              </span>
+              <h4>{title}</h4>
+              <p>{copy}</p>
+              <small>{example}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="aiLearningBlock" aria-labelledby="ai-basic-works">
+        <div className="aiSectionHeading">
+          <span>BASIC PROCESS</span>
+          <h3 id="ai-basic-works">How AI works at a basic level</h3>
+        </div>
+        <div className="aiTimeline" aria-label="Basic AI workflow">
+          {aiWorkflowSteps.map(([step, title, copy]) => (
+            <article key={title}>
+              <span>{step}</span>
+              <h4>{title}</h4>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+        <p className="aiCaution">
+          The output is not guaranteed to be correct. AI gives a likely answer
+          based on patterns, not a guaranteed truth.
+        </p>
+      </section>
+
+      <section className="aiLearningBlock" aria-labelledby="ai-types">
+        <div className="aiSectionHeading">
+          <span>COMMON TOOLS</span>
+          <h3 id="ai-types">Types of AI students will see</h3>
+        </div>
+        <div className="aiTypeGrid">
+          {aiTypes.map(([Icon, title, copy]) => (
+            <article key={title}>
+              <span className="aiIcon small">
+                <Icon />
+              </span>
+              <div>
+                <h4>{title}</h4>
+                <p>{copy}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="aiLearningBlock" aria-labelledby="ai-can-cannot">
+        <div className="aiSectionHeading">
+          <span>REALISTIC EXPECTATIONS</span>
+          <h3 id="ai-can-cannot">What AI can and cannot do</h3>
+        </div>
+        <div className="aiCompareGrid">
+          <article>
+            <h4>AI is good at</h4>
+            <ul>
+              {aiStrengths.map((item) => (
+                <li key={item}>
+                  <CheckCircle2 />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </article>
+          <article>
+            <h4>AI struggles with</h4>
+            <ul>
+              {aiLimits.map((item) => (
+                <li key={item}>
+                  <X />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section className="aiLearningBlock" aria-labelledby="ai-examples">
+        <div className="aiSectionHeading">
+          <span>EVERYDAY AI</span>
+          <h3 id="ai-examples">Where you already see AI</h3>
+        </div>
+        <div className="aiExampleGrid">
+          {aiExamples.map(([title, copy]) => (
+            <article key={title}>
+              <Sparkles />
+              <h4>{title}</h4>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="aiLearningBlock" aria-labelledby="ai-vocabulary">
+        <div className="aiSectionHeading">
+          <span>VOCABULARY</span>
+          <h3 id="ai-vocabulary">Important vocabulary</h3>
+        </div>
+        <div className="aiVocabularyGrid">
+          {aiVocabulary.map(([term, definition], index) => (
+            <details key={term} open={index < 3}>
+              <summary>{term}</summary>
+              <p>{definition}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="aiLiteracyCallout">
+        <div>
+          <span>WHY THIS MATTERS</span>
+          <h3>Why AI literacy matters</h3>
+          <p>
+            AI literacy is not just about knowing how to use tools. It is about
+            understanding what AI is, what it can do, what it cannot do, and how
+            to question its results. Students who understand AI can use it more
+            effectively, avoid common mistakes, and build better projects.
+          </p>
+        </div>
+        <a className="aiStartButton" href="#ai-literacy-courses">
+          Start learning AI <ArrowRight />
+        </a>
+      </section>
+    </section>
+  );
+}
 function Courses() {
   const [activeCategory, setActiveCategory] = useState(courseCategories[0]);
 
@@ -599,9 +944,10 @@ function Courses() {
                       {categoryCourses.length}{" "}
                       {categoryCourses.length === 1
                         ? "free resource"
-                        : "free resources"}
+                      : "free resources"}
                     </p>
                   </div>
+                  {category === "AI Literacy" && <AILiteracyIntro />}
                   {category === "Responsible AI" && (
                     <section className="responsibleCourseIntro">
                       <div className="responsibleHeroHeader">
@@ -662,6 +1008,13 @@ function Courses() {
                         </div>
                       </section>
                     </section>
+                  )}
+                  {category === "AI Literacy" && (
+                    <span
+                      className="anchorTarget"
+                      id="ai-literacy-courses"
+                      aria-hidden="true"
+                    />
                   )}
                   <div className="courseList">
                     {categoryCourses.map((course) => {
@@ -1630,7 +1983,7 @@ function NotFound() {
 }
 export default function App() {
   return (
-    <BrowserRouter basename>
+    <BrowserRouter>
       <ScrollTop />
       <Routes>
         <Route path="/" element={<Home />} />
