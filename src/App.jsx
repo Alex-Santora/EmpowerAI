@@ -1630,7 +1630,7 @@ function NotFound() {
 }
 export default function App() {
   return (
-    <BrowserRouter basename="/EmpowerAI">
+    <BrowserRouter basename>
       <ScrollTop />
       <Routes>
         <Route path="/" element={<Home />} />
