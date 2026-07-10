@@ -344,7 +344,7 @@ function Home() {
             {[
               [
                 BookOpen,
-                "Open Sourse AI Learning Paths",
+                "Open Source AI Learning Paths",
                 "Trusted free courses organized into approachable learning paths.",
                 "/courses",
               ],
