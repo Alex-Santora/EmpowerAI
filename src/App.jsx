@@ -51,7 +51,7 @@ const acknowledgmentNav = nav.find(([name]) => name === "Acknowledgments");
 function Logo() {
   return (
     <Link className="logo" to="/">
-      <img src={brandLogo} alt="EmpowerAI" />
+      <img src={brandLogo} alt="FutureWithAI" />
     </Link>
   );
 }
@@ -113,7 +113,7 @@ function Footer() {
           <Link to="/acknowledgments">Acknowledgments</Link>
           <Link to="/">Mission</Link>
         </div>
-        <p>Copyright 2026 EmpowerAI Foundation. </p>
+        <p>Copyright 2026 FutureWithAI Foundation. </p>
       </div>
     </footer>
   );
@@ -380,7 +380,7 @@ function Home() {
             <h2>Students need more than access to powerful tools.</h2>
             <p>
               AI is becoming part of every field, but clear and responsible
-              education remains uneven. EmpowerAI creates a simple path forward:
+              education remains uneven. FutureWithAI creates a simple path forward:
               learn foundational ideas, build something real, examine how it can
               fail, and share what you discovered.
             </p>
@@ -435,7 +435,7 @@ function Mission() {
       <PageHero
         eyebrow="Our Mission"
         title="AI education should be open to everyone."
-        copy="EmpowerAI exists to remove the guesswork, cost, and intimidation from learning artificial intelligence."
+        copy="FutureWithAI exists to remove the guesswork, cost, and intimidation from learning artificial intelligence."
       />
       <section className="content">
         <div className="shell narrow">
@@ -450,7 +450,7 @@ function Mission() {
               into genuine understanding.
             </p>
             <p>
-              EmpowerAI creates a simple path forward: learn foundational ideas,
+              FutureWithAI creates a simple path forward: learn foundational ideas,
               build something real, examine how it can fail, and share what you
               discovered.
             </p>
@@ -1551,7 +1551,7 @@ function Projects() {
                 <Bot />
               </span>
               <div>
-                <small>EMPOWERAI PROJECT MENTOR</small>
+                <small>FUTUREWITHAI PROJECT MENTOR</small>
                 <p>
                   Tell me what you want to build, and I will turn it into a
                   focused AI project plan you can actually finish.
@@ -1881,7 +1881,7 @@ function Acknowledgments() {
       <PageHero
         eyebrow="With Gratitude"
         title="Acknowledgments"
-        copy="EmpowerAI curates learning made possible by generous educators, institutions, open-source communities, and mentors."
+        copy="FutureWithAI curates learning made possible by generous educators, institutions, open-source communities, and mentors."
       />
       <section className="content acknowledgments">
         <div className="shell">
@@ -1907,7 +1907,7 @@ function Acknowledgments() {
           <section className="ackSection mentorThanks">
             <h2>Our Mentors</h2>
             <p>
-              The dedicated mentors who help EmpowerAI students learn, build,
+              The dedicated mentors who help FutureWithAI students learn, build,
               and keep moving forward.
             </p>
             <div className="mentorThanksGrid">
@@ -1922,7 +1922,7 @@ function Acknowledgments() {
             </div>
           </section>
           <p className="ackNote">
-            EmpowerAI is an independent nonprofit concept. Listing a course or
+            FutureWithAI is an independent nonprofit concept. Listing a course or
             provider does not imply sponsorship, partnership, or endorsement.
             Course names and logos remain the property of their respective
             owners.
@@ -1954,7 +1954,7 @@ function NotFound() {
         copy="The learning path continues from the home page."
       />
       <Cta
-        title="Return to EmpowerAI"
+        title="Return to FutureWithAI"
         copy="Find free courses, projects, and responsible AI guidance."
         to="/"
         label="Go Home"
