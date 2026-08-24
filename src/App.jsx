@@ -33,6 +33,9 @@ import {
   X,
 } from "lucide-react";
 import { courses, orgs } from "./data";
+import SiteIntro, {
+  shouldPlaySiteIntro,
+} from "./components/SiteIntro/SiteIntro";
 import brandLogo from "./logos/brand-trim.png";
 import elementsOfAiProviderLogo from "./logos/eoai.png";
 import michiganLogo from "./logos/Michigan.png";
@@ -64,7 +67,7 @@ function ScrollTop() {
 function Header() {
   const [open, setOpen] = useState(false);
   return (
-    <header>
+    <header data-site-intro="header">
       <div className="nav shell">
         <Logo />
         <nav className="primaryNav" aria-label="Primary navigation">
@@ -139,16 +142,20 @@ function PageHero({ eyebrow, title, copy }) {
   return (
     <section className="pageHero">
       <div className="shell">
-        <span>{eyebrow}</span>
-        <h1>{title}</h1>
-        <p>{copy}</p>
+        <span data-site-intro="eyebrow">{eyebrow}</span>
+        <h1 data-site-intro="headline">{title}</h1>
+        <p data-site-intro="copy">{copy}</p>
       </div>
     </section>
   );
 }
 function NeuralVisual() {
   return (
-    <div className="heroVisual" aria-label="Abstract AI learning network">
+    <div
+      className="heroVisual"
+      aria-label="Abstract AI learning network"
+      data-site-intro="visual"
+    >
       <div className="orb">
         <BrainCircuit />
         <span>
@@ -318,16 +325,16 @@ function Home() {
       <section className="homeHero">
         <div className="shell heroGrid">
           <div>
-            <span className="pill">100% Free Forever</span>
-            <h1>
+            <span className="pill" data-site-intro="eyebrow">100% Free Forever</span>
+            <h1 data-site-intro="headline">
               Universal Access to <em>AI Education.</em>
             </h1>
-            <p>
+            <p data-site-intro="copy">
               We are a nonprofit education concept dedicated to curating
               high-quality, free AI courses, practical projects, and responsible
               guidance for students everywhere.
             </p>
-            <div className="buttons">
+            <div className="buttons" data-site-intro="cta">
               <Button secondary to="/mentorship">
                 Find Mentor
               </Button>
@@ -2004,17 +2011,27 @@ function NotFound() {
   );
 }
 export default function App() {
+  const [introActive, setIntroActive] = useState(shouldPlaySiteIntro);
+
   return (
     <BrowserRouter>
-      <ScrollTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/courses" element={<Courses />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/mentorship" element={<Mentorship />} />
-        <Route path="/acknowledgments" element={<Acknowledgments />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <SiteIntro active={introActive} onComplete={() => setIntroActive(false)} />
+      <div
+        className="siteApplication"
+        inert={introActive ? true : undefined}
+        aria-hidden={introActive ? true : undefined}
+        aria-busy={introActive ? true : undefined}
+      >
+        <ScrollTop />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/mentorship" element={<Mentorship />} />
+          <Route path="/acknowledgments" element={<Acknowledgments />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

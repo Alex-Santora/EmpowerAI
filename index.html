@@ -8,6 +8,24 @@
       name="description"
       content="Free, practical, and responsible AI education for every student."
     />
+    <style>
+      html.site-intro-pending,
+      html.site-intro-pending body {
+        background: #0b1633;
+      }
+    </style>
+    <script>
+      (() => {
+        const key = "futurewithai.site-intro.v1";
+        try {
+          if (window.sessionStorage.getItem(key) !== "1") {
+            document.documentElement.classList.add("site-intro-pending");
+          }
+        } catch {
+          document.documentElement.classList.add("site-intro-pending");
+        }
+      })();
+    </script>
     <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
