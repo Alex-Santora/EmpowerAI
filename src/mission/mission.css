@@ -1,0 +1,193 @@
+.mission {
+  --mission-navy: #071321;
+  --mission-blue: #89c9da;
+  --mission-white: #f3f7fb;
+  --mission-muted: #c4d2de;
+  position: relative;
+  isolation: isolate;
+  background: var(--mission-navy);
+  color: var(--mission-white);
+  font-family: Manrope, system-ui, sans-serif;
+}
+.mission * { box-sizing: border-box; }
+.mission button, .mission a { -webkit-tap-highlight-color: transparent; }
+.mission button { color: inherit; cursor: pointer; font: inherit; }
+.mission :focus-visible { outline: 2px solid #99d9e4; outline-offset: 6px; }
+.mission-sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+.mission .mission-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  height: 100px; padding: 0 4.5vw; display: flex;
+  align-items: center; justify-content: space-between; gap: 32px;
+  background: linear-gradient(#071321ed, #07132165 70%, transparent);
+  border: 0; backdrop-filter: none;
+}
+.mission-brand {
+  display: block;
+  flex: 0 0 auto;
+  padding: 8px 0;
+  line-height: 0;
+}
+.mission-brand img {
+  display: block;
+  width: 176px;
+  max-width: 42vw;
+  height: auto;
+  opacity: 0.96;
+  filter: brightness(0) invert(1) drop-shadow(0 2px 8px #07132199);
+}
+.mission-nav-links { display: flex; align-items: center; gap: 32px; }
+.mission-nav-links a { font-size: 14px; color: #c4d2de; padding: 14px 0; }
+.mission-nav-links a:hover, .mission-nav-links a[aria-current] { color: white; }
+.mission-nav-links a[aria-current] { border-bottom: 1px solid #89c9da; }
+.mission-menu-button { display: flex; gap: 10px; align-items: center; border: 0; background: none; font-size: 14px !important; min-height: 44px; padding: 10px 0 10px 16px; }
+.mission-menu { position: absolute; right: 4.5vw; top: 85px; background: #0c2035fa; border: 1px solid #89c9da40; padding: 14px 24px; min-width: 250px; box-shadow: 0 18px 70px #0005; }
+.mission-menu a { display: flex; justify-content: space-between; gap: 40px; padding: 14px 0; font-size: 15px; }
+.mission-menu a:hover { color: #89c9da; }
+.mission-skip { position: fixed; top: 10px; left: 20px; padding: 15px; background: white; color: #10243c; z-index: 100; transform: translateY(-160%); }
+.mission-skip:focus { transform: none; }
+.mission-rail { height: 1300svh; position: relative; }
+.mission-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.mission-atmosphere, .mission-backdrop, .mission-scene, .mission-scrim { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mission-atmosphere { background: radial-gradient(ellipse at 65% 45%, #193951, #071321 75%); }
+.mission-backdrop { opacity: 0.35; filter: brightness(0.55) saturate(0.8); }
+.mission--ready:not(.mission--reading) .mission-backdrop { opacity: 0; }
+.mission-scene { opacity: 0; transition: opacity 0.8s ease; }
+.mission--ready .mission-scene { opacity: 1; }
+.mission-scene canvas { width: 100%; height: 100%; display: block; }
+.mission-scrim {
+  z-index: 1;
+  background: linear-gradient(90deg, #040d1b9c, #040d1b60 35%, transparent 67%), linear-gradient(0deg, #040d1be6, transparent 24%, transparent 75%, #040d1b40);
+  transition: background 0.8s;
+}
+.mission[data-chapter="learn"] .mission-scrim,
+.mission[data-chapter="human"] .mission-scrim { background: linear-gradient(270deg, #040d1bd9, #040d1b8c 31%, transparent 70%), linear-gradient(0deg, #040d1bcc, transparent 25%); }
+.mission-story { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.mission-chapter {
+  position: absolute; left: 7vw; top: 49%; width: min(510px, 41vw);
+  opacity: var(--reveal, 0); transform: translateY(calc(-50% + var(--lift, 15px)));
+  visibility: hidden; pointer-events: none;
+  will-change: opacity, transform;
+}
+.mission-chapter[data-active="true"] { visibility: visible; pointer-events: auto; }
+.mission-chapter--learn, .mission-chapter--human { left: auto; right: 7vw; }
+.mission-chapter--arrival { width: min(760px, 64vw); top: 44%; }
+.mission-eyebrow { font: 500 12px/1.6 Manrope, sans-serif; letter-spacing: 0.16em; color: #a6d3df; margin-bottom: 23px; }
+.mission-chapter h1, .mission-chapter h2 { font-weight: 500; line-height: 1.09; letter-spacing: -0.055em; margin: 0 0 24px; color: #f3f7fb; text-wrap: balance; }
+.mission-chapter h1 { font-size: clamp(52px, 5.7vw, 92px); }
+.mission-chapter h2 { font-size: clamp(38px, 4.05vw, 65px); }
+.mission-chapter em { font-style: normal; color: #9dd1df; }
+.mission-chapter p { font-size: 17px; line-height: 1.8; color: var(--mission-muted); max-width: 440px; margin: 0 0 26px; text-wrap: pretty; }
+.mission-chapter--arrival p { max-width: 430px; }
+.mission-cta { display: inline-flex; align-items: center; justify-content: space-between; gap: 40px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #89c9da80; padding: 12px 0; min-width: 180px; min-height: 48px; color: #f3f7fb; transition: color 0.2s, gap 0.2s; }
+.mission-cta:hover { color: #9dd1df; gap: 52px; }
+.mission-sequence { display: flex; align-items: center; gap: 16px; font-size: 16px; margin-top: 24px; }
+.mission-sequence svg { width: 17px; color: #89c9da; }
+.mission-reading-stats { display: grid; grid-template-columns: repeat(4, auto); gap: 20px; margin: 30px 0 0; }
+.mission-reading-stats dt { font-size: 27px; line-height: 1.3; font-weight: 500; }
+.mission-reading-stats dd { font-size: 12px; color: #c4d2de; margin: 5px 0 0; line-height: 1.6; }
+.mission-human-note { font-size: 15px; color: #9dd1df; }
+.mission-chapter--human h2 { font-size: clamp(36px, 3.65vw, 58px); }
+.mission-chapter--commit { width: min(560px, 43vw); }
+.mission-chapter--commit h2 { font-size: clamp(34px, 3.3vw, 53px); }
+.mission-promises { list-style: none; padding: 0; margin: 0; display: grid; gap: 15px; }
+.mission-promises li { border-left: 1px solid #89c9da55; padding-left: 16px; }
+.mission-promises h3 { margin: 0 0 3px; color: #9dd1df; font-size: 12px; letter-spacing: 0.13em; line-height: 1.5; }
+.mission-promises p { font-size: 16px; line-height: 1.5; margin: 0; }
+.mission-social { margin-top: 24px; padding-top: 17px; border-top: 1px solid #89c9da35; display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.mission-social p { width: 100%; font-size: 15px; margin: 0; }
+.mission-social a { font-size: 14px; line-height: 1.8; }
+.mission-social a span { display: block; font-size: 12px; color: #c4d2de; }
+.mission-chapter--grow { top: 44%; width: min(590px, 45vw); }
+.mission-chapter blockquote { font-size: clamp(29px, 2.65vw, 44px); line-height: 1.4; letter-spacing: -0.035em; margin: 0 0 24px; text-wrap: pretty; }
+.mission-chapter .mission-attribution { font-size: 15px; line-height: 1.6; color: white; margin-bottom: 0; }
+.mission-attribution span { display: block; color: #c4d2de; font-size: 13px; }
+.mission-signoff { font-size: 19px; font-weight: 600; margin-top: 24px; }
+.mission-signoff span { display: block; font-size: 13px; font-weight: 400; color: #c4d2de; margin-top: 5px; }
+.mission .mission-footer { padding: 0; margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; border: 0; background: none; }
+.mission-footer a { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; min-height: 32px; color: #d5e2ed; }
+.mission-footer small { width: 100%; font-size: 12px; color: #b3c5d5; }
+.mission-controls { position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; padding: 12px 4.5vw 20px; pointer-events: none; }
+.mission-controls-top { display: flex; align-items: center; justify-content: space-between; }
+.mission-scroll-hint { display: flex; align-items: center; gap: 10px; color: #c4d2de; font-size: 13px; }
+.mission-mode { display: inline-flex; gap: 8px; align-items: center; padding: 10px 0 10px 14px; font-size: 13px !important; background: none; border: 0; min-height: 44px; pointer-events: auto; }
+.mission--reading .mission-rail { height: auto; }
+.mission--reading .mission-stage { position: relative; height: auto; min-height: 100svh; overflow: clip; }
+.mission--reading .mission-backdrop, .mission--reading .mission-atmosphere, .mission--reading .mission-scrim, .mission--reading .mission-scene { position: fixed; height: 100svh; }
+.mission--reading .mission-scrim { background: linear-gradient(90deg, #040d1bef, #040d1bc9 60%, #040d1b80); }
+.mission--reading .mission-story { position: relative; }
+.mission--reading .mission-chapter { position: relative; top: auto; left: auto; right: auto; width: min(680px, 86%); margin-left: 7vw; min-height: 90svh; display: flex; flex-direction: column; justify-content: center; padding: 135px 0 80px; opacity: 1; visibility: visible; transform: none; will-change: auto; scroll-margin-top: 30px; }
+.mission--reading .mission-cta { align-self: flex-start; }
+.mission--reading .mission-chapter--grow { padding-bottom: 130px; }
+.mission--reading .mission-scroll-hint { display: none; }
+.mission--reading .mission-controls { left: auto; right: 24px; padding: 0 0 15px; }
+.mission--reading .mission-mode { background: #0c2035; padding: 10px 16px; border: 1px solid #89c9da66; }
+@media (max-width: 1050px) {
+  .mission-nav-links { gap: 24px; }
+  .mission-chapter { left: 6vw; width: 44vw; }
+  .mission-chapter--learn, .mission-chapter--human { left: auto; right: 6vw; }
+  .mission-chapter--arrival { width: 78vw; }
+  .mission-chapter p { font-size: 16px; }
+  .mission-reading-stats { gap: 12px; grid-template-columns: repeat(2, 1fr); margin-top: 18px; }
+  .mission-chapter--grow { width: 48vw; }
+}
+@media (max-width: 700px) {
+  .mission .mission-nav { height: 80px; padding: 0 24px; }
+  .mission-brand img { width: 148px; }
+  .mission-nav-links { display: none; }
+  .mission-menu { right: 24px; top: 73px; }
+  .mission-rail { height: 1300svh; }
+  .mission-chapter, .mission-chapter--learn, .mission-chapter--human { left: 26px; right: 26px; top: 125px; width: auto; transform: translateY(var(--lift, 15px)); }
+  .mission-eyebrow { font-size: 11px; margin-bottom: 17px; letter-spacing: 0.13em; }
+  .mission-chapter h1 { font-size: clamp(38px, 10.2vw, 62px); letter-spacing: -0.055em; }
+  .mission-chapter h2 { font-size: clamp(34px, 8.7vw, 49px); }
+  .mission-chapter p { font-size: 16px; line-height: 1.75; margin-bottom: 18px; }
+  .mission-chapter h1, .mission-chapter h2 { margin-bottom: 20px; }
+  .mission-scrim, .mission[data-chapter="learn"] .mission-scrim, .mission[data-chapter="human"] .mission-scrim { background: linear-gradient(180deg, #040d1ba6, #040d1bbd 25%, #040d1b96 49%, transparent 78%, #040d1bcc), linear-gradient(90deg, #040d1b45, transparent); }
+  .mission-controls { padding: 8px 24px 14px; }
+  .mission-scroll-hint { font-size: 11px; gap: 7px; }
+  .mission-mode { font-size: 12px !important; }
+  .mission-reading-stats { grid-template-columns: repeat(4, 1fr); margin-top: 21px; gap: 12px; }
+  .mission-reading-stats dt { font-size: 24px; }
+  .mission-reading-stats dd { font-size: 11px; }
+  .mission-sequence { margin-top: 15px; font-size: 15px; }
+  .mission-chapter--commit { top: 110px; }
+  .mission-chapter--commit h2 { font-size: 34px; }
+  .mission-promises { gap: 12px; }
+  .mission-promises p { font-size: 15px; margin: 0; }
+  .mission-social { margin-top: 18px; padding-top: 13px; }
+  .mission-social p { font-size: 14px; margin: 0; }
+  .mission-chapter--grow { top: 115px; }
+  .mission-chapter blockquote { font-size: clamp(26px, 7vw, 38px); line-height: 1.42; }
+  .mission-signoff { margin-top: 18px; }
+  .mission .mission-footer { margin-top: 16px; gap: 8px 17px; }
+  .mission-footer a { font-size: 12px; }
+  .mission--reading .mission-chapter { margin: 0 26px; width: auto; padding: 125px 0 65px; }
+}
+@media (max-height: 760px) and (min-width: 701px) {
+  .mission .mission-nav { height: 82px; }
+  .mission-chapter { top: 51%; }
+  .mission-chapter--arrival { top: 46%; }
+  .mission-chapter h1 { font-size: clamp(48px, 5.4vw, 75px); }
+  .mission-chapter h2 { font-size: 40px; margin-bottom: 18px; }
+  .mission-chapter p { font-size: 16px; line-height: 1.7; margin-bottom: 18px; }
+  .mission-eyebrow { margin-bottom: 16px; }
+  .mission-promises { gap: 10px; }
+  .mission-promises p, .mission-social p { margin: 0; font-size: 15px; }
+  .mission-social { margin-top: 18px; padding-top: 12px; }
+  .mission-chapter--commit h2 { font-size: 35px; }
+  .mission-chapter blockquote { font-size: 29px; margin-bottom: 18px; }
+  .mission-signoff { margin-top: 16px; }
+  .mission .mission-footer { margin-top: 16px; }
+}
+@media (max-height: 730px) and (max-width: 700px) {
+  .mission-chapter { top: 105px; }
+  .mission-chapter h1 { font-size: 38px; }
+  .mission-chapter h2 { font-size: 32px; }
+  .mission-chapter--commit, .mission-chapter--grow { top: 99px; }
+  .mission-promises { gap: 8px; }
+  .mission-social { margin-top: 14px; padding-top: 10px; }
+  .mission-chapter blockquote { font-size: 25px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mission * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
