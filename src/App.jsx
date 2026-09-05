@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   BrowserRouter,
   Link,
@@ -42,6 +42,7 @@ import michiganLogo from "./logos/Michigan.png";
 import founderPhoto from "./pfp/me.jpeg";
 import noahPhoto from "./pfp/noah.png";
 import jakePhoto from "./pfp/jf.png";
+const MissionPage = lazy(() => import("./mission/MissionPage"));
 const nav = [
   ["Mission", "/"],
   ["Courses", "/courses"],
@@ -2024,7 +2025,7 @@ export default function App() {
       >
         <ScrollTop />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Suspense fallback={<main style={{ minHeight: "100svh", background: "#0b1633", color: "white", padding: "12vh 8vw" }}><h1>Universal Access to AI Education.</h1><p>Opening FutureWithAI.</p><Link to="/courses">Explore Learning →</Link></main>}><MissionPage /></Suspense>} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/mentorship" element={<Mentorship />} />
