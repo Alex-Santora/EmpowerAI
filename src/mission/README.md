@@ -1,5 +1,34 @@
 # FutureWithAI Mission — continuous campus journey
 
+## September 6, 2026 — architecture refinement
+
+This pass refines the existing world in `city.js`. The supplied 23.47-second screen recording was reviewed from beginning to end through sequential local frames before editing. It showed repeated window dots, disconnected workshop elements, dominant tree crowns, and a repetitive skyline. The original camera, chapter timings, copy, typography, overlays, navigation, palette, renderer, and fallback strategy were retained. `MissionPage.jsx` has only a null guard for a resize callback arriving after route teardown; the scroll calculations are unchanged.
+
+The environment now uses an authored campus plan:
+
+| Journey | Architectural composition |
+| --- | --- |
+| Arrival / ecosystem | A stepped foreground institute frames the lower campus, with one dominant research tower beyond it. |
+| Learning | A terraced learning hall, glazed atrium, reading roof and finned rear book stack retain close facade parallax. |
+| Projects | Five supported sawtooth roof bays, clerestories, recessed glazing, work tables and suspended task lighting define a maker lab. |
+| Mentorship | An open annular canopy rests on a colonnade around a small planted court. Trees frame the view below the text. |
+| Human purpose | A rectangular reflecting pool, grounded ring sculpture, benches and paving joints establish a quieter civic plaza. |
+| Commitments / ascent | The lower western hall leaves the plaza legible as the camera rises. The eastern institute has a glazed link between occupied floors. Low academic wings form the background. |
+
+Facades use consistent 3.3-metre floors, continuous glass bays, structural mullions, selected occupied floor bands and roof setbacks. Six material families distinguish structure, panels, glazing, paving/water, light and planting using the existing colours. The existing environment map reveals the glazing as the viewing angle changes. The formerly elevated winding ribbon is now a thick, ground-level pedestrian promenade with a recessed curb light and entrance approaches. Planting occurs in authored groups, with smaller narrow crowns, low beds and restrained furniture. Static components still share geometries/materials and use instancing; mobile retains all six architectural identities and removes secondary background and planting detail.
+
+Verification for this pass:
+
+- Reviewed the desktop journey at 51 positions, with an additional 16-position desktop pass after structural corrections; reviewed all 16 mobile positions at 390×844.
+- Camera continuity and architectural box-intersection checks sampled 2,001 positions each for desktop and mobile. No camera intersections were found. Ground-floor slab corners were also checked against the campus ground footprints. These checks supplement the visual review; they are not an engineering structural analysis.
+- Desktop rendering sampled about 60–70k triangles versus 130–137k before, with comparable draw calls. Mobile sampled about 39–47k triangles before the final entrance connector (approximately 800 additional triangles). Local headless Chrome reported around 90fps; this does not establish physical-phone performance. Existing DPR caps and adaptive rendering remain unchanged.
+- Reading view, return to the city, reduced-motion static view, unavailable WebGL, short-screen fallback, mobile menu/Escape and navigation disposal passed. Layout checks covered 360×640, 360×800, 390×844, 768×1024, 1024×768 and 1440×900. Courses, Projects, Mentorship and Acknowledgments retained their routes, without a Mission canvas after navigation.
+- Production build and whitespace checks passed. The existing large-chunk advisory remains: the lazy scene is approximately 541kB minified / 140kB gzip. No dependency, downloaded model or generated texture was added.
+
+Local review evidence and harnesses are in the existing ignored `.mission-qa/` directory (`recording/`, `baseline/`, `final-sweep/`, `final/`, `pass2-mobile/`, `collision.json`, `regression.json`). Changes have not been committed or deployed.
+
+The sections below record the earlier September 5 implementation.
+
 ## Scope and preserved infrastructure
 
 This revision changes only files in `src/mission/`. The existing `/` route, official logo, educational copy, statistics, four commitments, founder quote, social links, CTAs and footer destinations are preserved. The requested opening headline now leads the page; "Universal Access to AI Education" follows in the ecosystem introduction. Existing uncommitted changes in `src/App.jsx`, package files and `.gitignore` predate this revision and were left intact. Nothing was merged or deployed.

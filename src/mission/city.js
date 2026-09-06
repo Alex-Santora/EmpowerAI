@@ -1,12 +1,10 @@
 import * as T from "three";
 import brandLogo from "../logos/brand-trim.png";
-
-
+// Authored campus around the existing camera. Approximately one metre per unit,
+// with a consistent 3.3m occupied floor module. No random massing or lit rooms.
 export function createCity(scene, mobile) {
-  const geometries = new Set(),
-    materials = new Set(),
-    textures = new Set();
-  const batches = new Map();
+  const geometries = new Set(), materials = new Set(), textures = new Set();
+  const objects = [], batches = new Map();
   const geometry = (g) => {
     geometries.add(g);
     return g;
@@ -16,491 +14,607 @@ export function createCity(scene, mobile) {
     materials.add(m);
     return m;
   };
-  const stone = material({ color: "#304b61", roughness: 0.7 });
-  const porcelain = material({
+  // Six reusable families: structure, panels, glass, ground, light, planting.
+  const dark = material({
+    color: "#0b1929",
+    roughness: .72,
+    metalness: .3
+  });
+  const metal = material({
+    color: "#35566b",
+    roughness: .48,
+    metalness: .65
+  });
+  const stone = material({
+    color: "#304b61",
+    roughness: .88
+  });
+  const panel = material({
     color: "#527087",
-    roughness: 0.85,
-    metalness: 0.15,
+    roughness: .78,
+    metalness: .12
   });
   const glass = material({
     color: "#29475f",
-    metalness: 0.25,
-    roughness: 0.4,
+    roughness: .22,
+    metalness: .48,
+    envMapIntensity: 1.1
   });
-  const dark = material({ color: "#0b1929", roughness: 0.65 });
-  const path = material({ color: "#172b3a", roughness: 0.85 });
+  const clearGlass = material({
+    color: "#29475f",
+    roughness: .18,
+    metalness: .35,
+    transparent: true,
+    opacity: .32,
+    depthWrite: false,
+    envMapIntensity: .8
+  });
+  const interior = material({
+    color: "#426777",
+    emissive: "#497283",
+    emissiveIntensity: .16,
+    roughness: .44
+  });
+  const path = material({
+    color: "#172b3a",
+    roughness: .95
+  });
+  const water = material({
+    color: "#081b2b",
+    metalness: .65,
+    roughness: .28
+  });
   const blue = material({
     color: "#66c2d1",
     emissive: "#3999b1",
-    emissiveIntensity: 0.6,
-    roughness: 0.4,
+    emissiveIntensity: .45,
+    roughness: .4
   });
-  const districtLights = ["learn", "build", "guide"].map((id) => ({
+  const green = material({
+    color: "#24574b",
+    roughness: 1
+  });
+  const lawn = material({
+    color: "#163f38",
+    roughness: 1
+  });
+  const districtLights = [
+    "learn",
+    "build",
+    "guide"
+  ].map((id) => ({
     id,
     material: material({
       color: "#8cdbd7",
       emissive: "#4baea9",
-      emissiveIntensity: 0.3,
-    }),
+      emissiveIntensity: .3
+    })
   }));
-  const warm = material({
-    color: "#d3b58d",
-    emissive: "#bc9164",
-    emissiveIntensity: 0.5,
-  });
-  const green = material({ color: "#24574b", roughness: 1 });
-  const lawn = material({ color: "#163f38", roughness: 1 });
   const box = geometry(new T.BoxGeometry(1, 1, 1));
-  const sphere = geometry(new T.SphereGeometry(1, mobile ? 8 : 12, 8));
-  const cylinder = geometry(new T.CylinderGeometry(1, 1, 1, 64));
+  const cylinder = geometry(new T.CylinderGeometry(1, 1, 1, 16));
+  const round = geometry(new T.CylinderGeometry(1, 1, 1, 80));
+  const leaf = geometry(new T.IcosahedronGeometry(1, 1));
   const dummy = new T.Object3D();
-
-  function instance(g, m, x, y, z, sx, sy, sz, rotation = 0) {
+  function instance(g, m, x, y, z, sx, sy, sz, ry = 0, rz = 0) {
     const key = `${g.uuid}:${m.uuid}`;
-    if (!batches.has(key)) batches.set(key, { g, m, transforms: [] });
+    if (!batches.has(key)) batches.set(key, {
+      g,
+      m,
+      transforms: []
+    });
     dummy.position.set(x, y, z);
     dummy.scale.set(sx, sy, sz);
-    dummy.rotation.set(0, rotation, 0);
+    dummy.rotation.set(0, ry, rz);
     dummy.updateMatrix();
     batches.get(key).transforms.push(dummy.matrix.clone());
   }
-  const block = (m, x, y, z, w, h, d, r = 0) =>
-    instance(box, m, x, y, z, w, h, d, r);
-  const disk = (m, x, y, z, radius, height) =>
-    instance(cylinder, m, x, y, z, radius, height, radius);
-  function mesh(g, m, position) {
+  const block = (m, x, y, z, w, h, d, ry = 0, rz = 0) => instance(box, m, x, y, z, w, h, d, ry, rz);
+  const disk = (m, x, y, z, r, h) => instance(round, m, x, y, z, r, h, r);
+  const column = (x, z, bottom, top, r = .16, m = metal) => instance(cylinder, m, x, (bottom + top) / 2, z, r, top - bottom, r);
+  function mesh(g, m, position = [0, 0, 0]) {
     const obj = new T.Mesh(g, m);
     obj.position.set(...position);
     scene.add(obj);
+    objects.push(obj);
     return obj;
   }
-  function line(points, m, radius = 0.09) {
-    const curve = new T.CatmullRomCurve3(
-      points.map((p) => new T.Vector3(...p)),
-    );
-    mesh(
-      geometry(new T.TubeGeometry(curve, 80, radius, 5, false)),
-      m,
-      [0, 0, 0],
-    );
+  function line(points, m, radius = .035) {
+    const curve = new T.CatmullRomCurve3(points.map((p) => new T.Vector3(...p)));
+    mesh(geometry(new T.TubeGeometry(curve, 100, radius, 5, false)), m);
     return curve;
   }
-  function walkway(points, m, width) {
-    const curve = new T.CatmullRomCurve3(
-      points.map((p) => new T.Vector3(...p)),
-    );
-    const positions = [],
-      indices = [],
-      p = new T.Vector3(),
-      tangent = new T.Vector3();
+  // Closed, thick paving ribbon. Curbs share its exact samples, so light cannot
+  // float above the ground or separate from the walkway on a bend.
+  function walkway(points, width = 3.2, lit = false) {
+    const curve = new T.CatmullRomCurve3(points.map((p) => new T.Vector3(...p)));
+    const positions = [], indices = [], edge = [];
+    const p = new T.Vector3(), tangent = new T.Vector3();
     for (let i = 0; i <= 100; i++) {
       curve.getPoint(i / 100, p);
       curve.getTangent(i / 100, tangent);
-      const normal = new T.Vector3(-tangent.z, 0, tangent.x)
-        .normalize()
-        .multiplyScalar(width / 2);
-      positions.push(
-        p.x + normal.x,
-        p.y,
-        p.z + normal.z,
-        p.x - normal.x,
-        p.y,
-        p.z - normal.z,
-      );
+      const nx = -tangent.z / Math.hypot(tangent.x, tangent.z) * width / 2;
+      const nz = tangent.x / Math.hypot(tangent.x, tangent.z) * width / 2;
+      positions.push(p.x + nx, p.y, p.z + nz, p.x - nx, p.y, p.z - nz, p.x + nx, p.y - .22, p.z + nz, p.x - nx, p.y - .22, p.z - nz);
+      edge.push(new T.Vector3(p.x + nx, p.y + .025, p.z + nz));
       if (i < 100) {
-        const k = i * 2;
-        indices.push(k, k + 2, k + 1, k + 1, k + 2, k + 3);
+        const k = i * 4;
+        indices.push(k, k + 4, k + 1, k + 1, k + 4, k + 5, k, k + 2, k + 4, k + 2, k + 6, k + 4, k + 1, k + 5, k + 3, k + 3, k + 5, k + 7, k + 2, k + 3, k + 6, k + 3, k + 7, k + 6);
       }
     }
+    indices.push(0, 1, 2, 1, 3, 2, 400, 402, 401, 401, 402, 403);
     const g = geometry(new T.BufferGeometry());
     g.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
     g.setIndex(indices);
     g.computeVertexNormals();
-    const surface = mesh(g, m, [0, 0, 0]);
-    surface.receiveShadow = true;
+    mesh(g, path).receiveShadow = true;
+    if (lit) mesh(geometry(new T.TubeGeometry(new T.CatmullRomCurve3(edge), 100, .025, 4, false)), blue);
     return curve;
   }
-  // A terraced campus island, with a quiet reflecting water plane around it.
-  const water = material({
-    color: "#081b2b",
-    metalness: 0.65,
-    roughness: 0.28,
-  });
-  mesh(
-    geometry(new T.PlaneGeometry(2400, 2400)),
-    water,
-    [0, -1.6, 0],
-  ).rotation.x = -Math.PI / 2;
-  disk(dark, 0, -1, 10, 92, 2);
-  disk(path, 0, -1, -133, 140, 1.4);
-  disk(stone, 0, 0.1, 10, 89, 0.35);
-  disk(path, 0, 0.32, 10, 84, 0.12);
-  disk(stone, 0, 0.45, 10, 79, 0.2);
-  const shore = geometry(new T.TorusGeometry(89, 0.09, 5, 128));
-  mesh(shore, blue, [0, 0.28, 10]).rotation.x = Math.PI / 2;
-
-  const windowLight = material({ color: "#426777", emissive: "#497283", emissiveIntensity: 0.25, roughness: 0.35 });
-  const metal = material({ color: "#35566b", metalness: 0.8, roughness: 0.3 });
-  function building(x, z, w, h, d) {
-    block(stone, x, 0.75, z, w + 2, 1.1, d + 2);
-    block(glass, x, h / 2 + 1, z, w, h, d);
-    // Deep floor reveals, recessed windows and asymmetric solid service cores.
-    block(stone, x - w * 0.37, h / 2 + 1, z, w * 0.25, h + 0.3, d + 0.25);
-    for (let floor = 0, y = 1.3; y < h; y += 3.3, floor++) {
-      block(metal, x, y, z, w + 0.45, 0.18, d + 0.45);
-      for (let j = 0; j < Math.floor(w / 2); j++) {
-        if ((j * 7 + floor * 3 + Math.round(x)) % 5 > 1) continue;
-        block(windowLight, x - w / 2 + 1.2 + j * 2, y + 1.25, z + d / 2 + 0.015, 1.25, 0.85, 0.035);
-      }
-      for (let j = 0; j < Math.floor(d / 2); j++) {
-        if ((j + floor * 3) % 5 > 1) continue;
-        block(windowLight, x + w / 2 + 0.015, y + 1.25, z - d / 2 + 1.2 + j * 2, 0.035, 0.85, 1.25);
-        block(windowLight, x - w / 2 - 0.015, y + 1.25, z - d / 2 + 1.2 + j * 2, 0.035, 0.85, 1.25);
-      }
+  function rail(x, y, z, w, d) {
+    for (const side of [-1, 1]) {
+      block(metal, x, y + 1.05, z + side * d / 2, w, .065, .065);
+      for (let i = 0; i <= Math.ceil(w / 2.8); i++) block(metal, x - w / 2 + i * w / Math.ceil(w / 2.8), y + .52, z + side * d / 2, .06, 1.04, .06);
+      block(metal, x + side * w / 2, y + 1.05, z, .065, .065, d);
     }
-    for (let dx = -w / 2; dx <= w / 2; dx += 2.1) {
-      block(dark, x + dx, h / 2 + 1, z + d / 2 + 0.12, 0.11, h, 0.32);
-      block(metal, x + dx, h / 2 + 1, z - d / 2 - 0.12, 0.11, h, 0.32);
-    }
-    block(stone, x, h + 1.2, z, w + 0.8, 0.4, d + 0.8);
-    block(dark, x, h + 1.45, z, w - 0.6, 0.15, d - 0.6);
-    block(metal, x - w * 0.2, h + 2.1, z, w * 0.3, 1.1, d * 0.35);
-    block(blue, x, 1.4, z + d / 2 + 0.15, w, 0.06, 0.12);
   }
-  // Central tower: slender twin volumes, an open crown, and a shared skybridge.
-  building(4, -15, 11, 49, 12);
-  building(17, -19, 8, 39, 11);
-  block(porcelain, 10, 34, -17, 19, 1, 7);
-  block(glass, 10, 35.4, -17, 19, 1.8, 6);
-  block(blue, 4, 50.9, -15, 11.5, 0.18, 12.5);
-  block(porcelain, -0.6, 54, -15, 0.45, 7, 11);
-  block(porcelain, 8.6, 54, -15, 0.45, 7, 11);
-  block(porcelain, 4, 57.5, -15, 9.6, 0.45, 11);
-  block(blue, 4, 57.76, -9.45, 9.6, 0.05, 0.05);
-  // Official artwork sits on an architectural plaque, without redrawing it.
+  // Ordered curtain-wall bays, floor slabs and solid service cores. An explicitly
+  // chosen occupied floor is one continuous band, never a field of glowing dots.
+  function volume(x, z, w, floors, d, base = .7, { fins = false, litFloor = -1, core = true } = {}) {
+    const h = floors * 3.3;
+    block(glass, x, base + h / 2, z, w, h, d);
+    if (core) block(stone, x - w * .36, base + h / 2, z, w * .28, h, d + .1);
+    for (let f = 0; f <= floors; f++) {
+      const y = base + f * 3.3;
+      block(stone, x, y, z, w + .42, .22, d + .42);
+      if (f === litFloor) {
+        block(interior, x + w * .14, y + 1.55, z + d / 2 + .015, w * .63, 2.7, .025);
+        block(interior, x + w / 2 + .015, y + 1.55, z, .025, 2.7, d - .6);
+      }
+    }
+    const bays = Math.ceil(w / 2.7), sideBays = Math.ceil(d / 2.7);
+    for (let i = 0; i <= bays; i++) {
+      const dx = -w / 2 + i * w / bays;
+      block(fins ? panel : metal, x + dx, base + h / 2, z + d / 2 + .16, fins ? .18 : .1, h, fins ? .7 : .2);
+      block(metal, x + dx, base + h / 2, z - d / 2 - .08, .1, h, .18);
+    }
+    for (let i = 0; i <= sideBays; i++) for (const dx of [-w / 2, w / 2]) block(metal, x + dx, base + h / 2, z - d / 2 + i * d / sideBays, .18, h, .1);
+    block(panel, x, base + h + .15, z, w + .65, .3, d + .65);
+    block(dark, x - w * .15, base + h + .7, z - d * .18, w * .32, .8, d * .28);
+  }
+  function entrance(x, z, w, roof = 4.1, accent = blue) {
+    block(dark, x, 2.1, z - .15, w, 2.8, .25);
+    block(glass, x, 2, z + .02, w - .7, 2.6, .08);
+    block(metal, x, 2, z + .1, .08, 2.6, .12);
+    block(panel, x, roof, z + 1.1, w + 1.5, .25, 2.8);
+    for (const dx of [-w / 2 - .45, w / 2 + .45]) column(x + dx, z + 2.15, .65, roof, .09);
+    block(accent, x, roof - .14, z + 1.8, w - .5, .035, .09);
+  }
+  function planter(x, z, w, d, y = .7) {
+    block(stone, x, y + .25, z, w, .5, d);
+    block(lawn, x, y + .51, z, w - .24, .04, d - .24);
+  }
+  function tree(x, z, s = 1, base = .7) {
+    column(x, z, base, base + 2.65 * s, .065 * s, dark);
+    for (const side of [-1, 1]) block(dark, x + side * .2 * s, base + 2.1 * s, z, .05 * s, .9 * s, .05 * s, 0, -side * .5);
+    instance(leaf, green, x, base + 2.75 * s, z, .66 * s, .88 * s, .58 * s);
+    instance(leaf, green, x - .36 * s, base + 2.4 * s, z + .08 * s, .53 * s, .52 * s, .51 * s);
+    instance(leaf, green, x + .34 * s, base + 2.55 * s, z - .07 * s, .47 * s, .64 * s, .5 * s);
+  }
+  function grove(x, z, w = 7, d = 3, scales = [1, .9, 1.06]) {
+    planter(x, z, w, d);
+    scales.forEach((s, i) => {
+      const offset = (i - (scales.length - 1) / 2) / Math.max(1, scales.length - 1);
+      tree(x + (w >= d ? offset * (w - 1.8) : 0), z + (w < d ? offset * (d - 1.8) : i % 2 ? .25 : -.2), s, 1.22);
+    });
+    if (!mobile) for (let i = 0; i < Math.floor(w); i++) instance(leaf, lawn, x - w / 2 + .6 + i, 1.45, z + d / 2 - .6, .45, .24, .35);
+  }
+  function bench(x, z, ry = 0) {
+    block(panel, x, 1.18, z, 2.1, .14, .55, ry);
+    for (const dx of [-.78, .78]) block(dark, x + Math.cos(ry) * dx, .92, z - Math.sin(ry) * dx, .12, .48, .45, ry);
+  }
+  function bollard(x, z) {
+    block(dark, x, 1.13, z, .14, .86, .14);
+    block(blue, x, 1.48, z, .15, .08, .15);
+  }
+  // Keep the island/water setting, with continuous ground instead of concentric
+  // stacked platforms. Only the arrival promenade has a lit shoreline.
+  mesh(geometry(new T.PlaneGeometry(2400, 2400)), water, [0, -1.6, 0]).rotation.x = -Math.PI / 2;
+  disk(dark, 0, -.7, 10, 92, 2.3);
+  disk(stone, 0, .55, 10, 89, .3);
+  disk(path, 0, -.04, -133, 140, 1.4);
+  line([
+    [76, .73, 49],
+    [57, .73, 78],
+    [20, .73, 96],
+    [-17, .73, 96]
+  ], blue, .025);
+  // LEARNING HALL: two wings, a glazed atrium and a planted reading terrace.
+  // The rear book stack keeps the familiar finned near-field edge at .27–.34.
+  volume(-31, 3, 13, 7, 12, .7, {
+    fins: true,
+    litFloor: 1
+  });
+  volume(-32, 13, 27, 2, 14, .7, { litFloor: 0 });
+  volume(-45, -3, 9, 3, 16, .7, { fins: true });
+  block(glass, -20, 7.3, 6, 7, 13.2, 10);
+  for (const x of [-23.5, -20, -16.5]) block(panel, x, 7.3, 11.2, .24, 13.2, .7);
+  block(panel, -20, 14.05, 6, 7.8, .3, 10.8);
+  entrance(-23, 20.2, 5, 4.4, districtLights[0].material);
+  rail(-32, 7.6, 15, 26, 9);
+  planter(-40, 15, 6, 2.1, 7.6);
+  for (const x of [-42, -40, -38]) instance(leaf, lawn, x, 8.35, 15, .7, .25, .6);
+  grove(-42, 24, 7, 2.6);
+  bench(-34, 23);
+  bench(-30, 23);
+  // RESEARCH TOWER: nested floor plates and a recessed crown. Blades terminate
+  // at slabs, so the silhouette has setbacks without unsupported crown beams.
+  volume(5, -16, 15, 9, 15, .7, {
+    fins: true,
+    litFloor: 2
+  });
+  volume(3, -17, 11, 3, 12, 30.4, {
+    fins: true,
+    litFloor: 1
+  });
+  volume(1, -18, 7, 2, 9, 40.3, { fins: true });
+  volume(19, -18, 8, 6, 12, .7, { litFloor: 0 });
+  block(stone, 6, 1, -6, 29, .6, 7);
+  entrance(7, -2.5, 5, 4.4);
+  block(metal, 14, 14, -17, 7, .4, 4.4);
+  block(clearGlass, 14, 15.5, -17, 7, 2.6, 4);
+  block(panel, 14, 16.95, -17, 7.4, .3, 4.5);
+  for (const x of [11, 13, 15, 17]) for (const z of [-19.04, -14.96]) block(metal, x, 15.5, z, .07, 2.6, .1);
   let disposed = false;
-  const logoTexture = new T.TextureLoader().load(brandLogo, (texture) => {
-    if (disposed) texture.dispose();
+  const logoTexture = new T.TextureLoader().load(brandLogo, (t) => {
+    if (disposed) t.dispose();
   });
   logoTexture.colorSpace = T.SRGBColorSpace;
   textures.add(logoTexture);
   const logoMaterial = new T.MeshBasicMaterial({
     map: logoTexture,
-    transparent: true,
-    side: T.DoubleSide,
+    transparent: true
   });
   materials.add(logoMaterial);
-  const plaqueBacking = material({ color: "#d3dee4", roughness: 0.85 });
-  block(plaqueBacking, 4, 43.7, -8.84, 10.2, 3.9, 0.18);
-  mesh(
-    geometry(new T.PlaneGeometry(9.7, 3.47)),
-    logoMaterial,
-    [4, 43.7, -8.72],
-  );
-
-  // Open learning center: offset library terraces and a planted reading roof.
-  building(-26, 8, 21, 10, 17);
-  building(-30, 1, 13, 31, 11);
-  building(-43, -9, 8, 39, 10);
-  // Tall library sun-breaks create a strong near-field edge during the descent.
-  for (let x = -36; x < -23; x += 1.7) block(metal, x, 18, 7.2, 0.22, 34, 1.25);
-  block(districtLights[0].material, -23.25, 20, 7.9, 0.08, 22, 0.08);
-  block(porcelain, -23, 7, 19, 25, 0.5, 7);
-  block(districtLights[0].material, -23, 7.3, 22.55, 25, 0.1, 0.1);
-  for (let x = -34; x < -11; x += 4) block(stone, x, 3.7, 21, 0.35, 6, 0.35);
-  // Workshop: an open construction frame, sawtooth roof and modular prototypes.
-  for (let x = 15; x <= 39; x += 4) {
-    block(metal, x, 8, 5, 0.4, 15, 0.4);
-    block(metal, x, 8, 22, 0.4, 15, 0.4);
-    block(metal, x, 15.3, 13.5, 0.35, 0.45, 18);
-    block(districtLights[1].material, x, 15.56, 13.5, 0.06, 0.06, 17);
+  const plaque = material({
+    color: "#d3dee4",
+    roughness: .85
+  });
+  block(plaque, 3, 36.5, -10.82, 8.7, 3.25, .12);
+  mesh(geometry(new T.PlaneGeometry(8.3, 2.96)), logoMaterial, [3, 36.5, -10.74]);
+  // MAKER LAB: five complete portal bays. Sloping roof panels meet clerestories
+  // and longitudinal eaves. Front glass sits behind the structural frame.
+  block(stone, 27, .94, 12, 26, .48, 20);
+  block(dark, 27, 4.9, 2.15, 25, 8, .3);
+  block(glass, 14.7, 4.9, 12, .18, 8, 20);
+  block(glass, 39.3, 4.9, 12, .18, 8, 20);
+  for (let i = 0; i <= 5; i++) {
+    const x = 14.5 + i * 5;
+    for (const z of [2, 22]) block(metal, x, 5.05, z, .26, 8.7, .3);
+    block(metal, x, 9.35, 12, .28, .4, 20.5);
   }
-  block(metal, 27, 15.3, 5, 25, 0.45, 0.45);
-  block(metal, 27, 15.3, 22, 25, 0.45, 0.45);
+  for (const z of [2, 22]) block(metal, 27, 9.35, z, 25.5, .4, .35);
   for (let i = 0; i < 5; i++) {
-    block(stone, 17 + i * 4.7, 12.9, 11, 3.6, 0.25, 10);
-    block(glass, 18.5 + i * 4.7, 13.7, 14, 0.15, 1.5, 16);
+    const x = 14.5 + i * 5, rise = 1.7;
+    block(panel, x + 2.5, 10.2, 12, Math.hypot(5, rise), .22, 20.5, 0, Math.atan2(rise, 5));
+    block(glass, x + 5, 10.2, 12, .12, 1.7, 20);
+    block(metal, x + 5, 11.08, 12, .18, .18, 20.5);
+    for (const z of [2, 7, 12, 17, 22]) block(metal, x + 5, 10.2, z, .16, 1.7, .08);
+    if (i !== 2) {
+      block(clearGlass, x + 2.5, 4.9, 21.88, 4.55, 7.9, .08);
+      block(metal, x + 2.5, 4.9, 22.02, .09, 8, .14);
+      block(dark, x + 2.5, 1.5, 22.08, 4.6, 1.5, .18);
+    }
+    block(metal, x + 2.5, 4.65, 22.02, 4.6, .12, .14);
+    block(panel, x + 2.5, 2.02, 16, 2.4, .14, 1.1);
+    for (const dx of [-.85, .85]) block(metal, x + 2.5 + dx, 1.59, 16, .08, .82, .8);
+    block(interior, x + 2.5, 4.7, 2.34, 4.1, 2.2, .06);
+    block(metal, x + 2.5, 8.6, 12, .05, 1.2, .05);
+    block(districtLights[1].material, x + 2.5, 7.98, 12, 2.2, .045, .15);
   }
-  building(43, 5, 8, 17, 10);
-  // Project lab: long-span workshop halls and cantilevered prototype gallery.
-  block(dark,26,1.1,14,24,0.8,17);
-  block(glass,26,5.5,6,23,8,0.25);
-  block(stone,15,5.5,14,0.35,8,16);
-  // Work benches and unfinished components can be seen through the open bays.
-  for(let i=0;i<4;i++) {
-    const x=18+i*5;
-    block(stone,x,2.7,17,3,0.35,4.5);
-    block(metal,x,1.9,17,2,1.5,3);
-    block(glass,x,4.2,16,1.8,2.7,1.8);
-    block(districtLights[1].material,x,5.6,16,1.9,0.04,1.9);
-    block(metal,x,5.8,9,2.8,0.3,0.3);
-    block(metal,x+1.2,4.8,9,0.25,2,0.25);
+  entrance(27, 22.2, 4, 4.2, districtLights[1].material);
+  volume(44, 7, 7, 3, 14, .7, { litFloor: 1 });
+  // Shallow entrance steps connect the raised workshop slab to the forecourt.
+  for (let i = 0; i < 3; i++) block(stone, 27, .78 + i * .16, 24 - i * .55, 4.2, .16, .6);
+  grove(40, 27, 5, 2.5, [.9, 1]);
+  bench(32, 26);
+  // COMMONS: annular canopy on a colonnade, with a sky-lit central garden.
+  disk(path, 22, .79, 44, 13, .18);
+  const roofShape = new T.Shape();
+  roofShape.absarc(0, 0, 12, 0, Math.PI * 2, false);
+  const hole = new T.Path();
+  hole.absarc(0, 0, 7.7, 0, Math.PI * 2, true);
+  roofShape.holes.push(hole);
+  const roof = geometry(new T.ExtrudeGeometry(roofShape, {
+    depth: .42,
+    bevelEnabled: false,
+    curveSegments: 48
+  }));
+  roof.rotateX(-Math.PI / 2);
+  mesh(roof, panel, [22, 6.3, 44]).castShadow = true;
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2;
+    column(22 + Math.cos(a) * 10.7, 44 + Math.sin(a) * 10.7, .7, 6.3, .12);
+    block(metal, 22 + Math.cos(a) * 9.85, 6.18, 44 + Math.sin(a) * 9.85, 4.2, .24, .18, -a);
   }
-  // A low annex and staggered frame give the workshop a different silhouette.
-  block(stone,39,3.6,15,4,5,12);
-  block(metal,30,10,17,15,0.25,0.25);
-
-  for (let x = 17; x < 39; x += 4) {
-    block(warm, x, 10.8, 21, 1.6, 0.04, 0.1);
-  }
-  // Community pavilion: a circular canopy with an open colonnade.
-  disk(stone, 22, 1, 44, 13, 0.8);
-  disk(dark, 22, 1.65, 44, 10, 0.4);
-  disk(lawn, 22, 1.9, 44, 7, 0.15);
-  disk(stone, 22, 2.1, 44, 3, 0.3);
-  disk(porcelain, 22, 7, 44, 14, 0.65);
-  const canopyLight = geometry(new T.TorusGeometry(13.8, 0.045, 5, 72));
-  mesh(canopyLight, districtLights[2].material, [22, 7.35, 44]).rotation.x =
-    Math.PI / 2;
-  disk(lawn, 22, 7.4, 44, 11, 0.15);
-  // A stepped outdoor amphitheatre beside the open pavilion.
-  for (let i = 0; i < 4; i++) disk(i % 2 ? stone : dark, 39, 0.8 + i * 0.26, 49, 6.5 - i, 0.26);
-  for (let i = 0; i < 14; i++) {
-    const angle = (i / 14) * Math.PI * 2;
-    block(
-      porcelain,
-      22 + Math.cos(angle) * 12,
-      4,
-      44 + Math.sin(angle) * 12,
-      0.3,
-      6,
-      0.3,
-    );
-  }
-  // Pedestrian skywalks connect the three real educational destinations.
-  const transit = walkway(
+  mesh(geometry(new T.TorusGeometry(7.85, .027, 4, 80)), districtLights[2].material, [22, 6.27, 44]).rotation.x = Math.PI / 2;
+  disk(lawn, 22, .84, 44, 6, .2);
+  for (const [x, z, s] of [
+    [19, 43, .95],
+    [23, 45, 1.06],
+    [25, 41, .85]
+  ]) tree(x, z, s, .95);
+  for (const [x, z, r] of [
+    [17, 52, 0],
+    [26, 52, 0],
     [
-      [-58, 6, 4],
-      [-30, 6, -7],
-      [0, 6, 0],
-      [27, 6, 32],
-      [49, 6, 45],
-      [70, 6, 18],
-    ],
-    porcelain,
-    2.1,
-  );
-  line(
-    [
-      [-58, 6.8, 4],
-      [-30, 6.8, -7],
-      [0, 6.8, 0],
-      [27, 6.8, 32],
-      [49, 6.8, 45],
-      [70, 6.8, 18],
-    ],
-    blue,
-    0.07,
-  );
-  [-52, -30, -10, 12, 39, 63].forEach((x, i) =>
-    block(stone, x, 3, [2, -7, -3, 12, 42, 30][i], 0.45, 6, 0.45),
-  );
-  const roads = [
-    [
-      [-73, 0.65, 40],
-      [-42, 0.65, 30],
-      [-10, 0.65, 29],
-      [9, 0.65, 37],
-      [4, 0.65, 63],
-      [-10, 0.65, 84],
+      31,
+      45,
+      Math.PI / 2
     ],
     [
-      [63, 0.65, -37],
-      [49, 0.65, -9],
-      [44, 0.65, 17],
-      [56, 0.65, 43],
-      [43, 0.65, 73],
-    ],
-    [
-      [-65, 0.65, -35],
-      [-41, 0.65, -25],
-      [-12, 0.65, -38],
-      [22, 0.65, -36],
-      [47, 0.65, -24],
-    ],
-  ];
-  roads.forEach((points) => {
-    walkway(points, dark, 3);
-    line(
-      points.map(([x, y, z]) => [x, y + 0.05, z]),
-      blue,
-      0.035,
-    );
+      13,
+      43,
+      Math.PI / 2
+    ]
+  ]) bench(x, z, r);
+  grove(35, 54, 6, 2.7, [.85, 1, .93]);
+  grove(16, 58, 5, 2.6, [.9, 1]);
+  // CONNECTION INSTITUTE: foreground stepped volume and lower wing. The link
+  // bears inside occupied floor plates at both ends rather than ending in air.
+  volume(60, 61, 12, 8, 14, .7, {
+    fins: true,
+    litFloor: 1
   });
-  // Campus skyline has deliberate setbacks; no random towers fill the plazas.
+  volume(58, 59, 8, 2, 10, 27.1, { fins: true });
+  volume(71, 53, 8, 3, 8, .7, { litFloor: 1 });
+  block(metal, 66.5, 7.4, 55.5, 5, .36, 3.4);
+  block(clearGlass, 66.5, 8.9, 55.5, 5, 2.65, 3);
+  block(panel, 66.5, 10.38, 55.5, 5.4, .3, 3.5);
+  for (const x of [64, 66, 68]) for (const z of [53.94, 57.06]) block(metal, x, 8.9, z, .08, 2.65, .12);
+  block(blue, 66.5, 7.61, 57.1, 4.5, .04, .06);
+  entrance(59, 68.2, 4);
+  // Lower secondary wings frame planted courts, leaving one dominant tower.
+  volume(-49, -28, 20, 3, 10, .7, { fins: true });
+  volume(-54, -15, 10, 3, 17, .7);
+  volume(-24, -40, 24, 4, 11, .7, { litFloor: 0 });
+  volume(-30, -29, 11, 2, 10, .7);
+  volume(7, -47, 24, 3, 12, .7, { fins: true });
+  volume(35, -36, 13, 5, 13, .7, { fins: true });
+  volume(42, -22, 22, 2, 10, .7);
+  volume(64, 13, 10, 4, 18, .7, { fins: true });
+  // Keep western parallax while opening the commitment view onto the plaza.
+  volume(-44, 65, 16, 3, 11, .7, { litFloor: 0 });
+  volume(-48, 55, 8, 2, 9, .7);
+  entrance(-41, 70.7, 4);
+  if (!mobile) {
+    for (const [x, z, w, f, d] of [
+      [-61, -100, 28, 4, 14],
+      [-26, -115, 25, 5, 12],
+      [10, -123, 30, 4, 15],
+      [45, -110, 24, 5, 14],
+      [72, -84, 20, 3, 15],
+      [-89, -61, 24, 3, 12],
+      [94, -49, 20, 3, 14]
+    ]) volume(x, z, w, f, d);
+    for (const [x, z] of [
+      [-49, -151],
+      [-12, -165],
+      [29, -153],
+      [65, -143]
+    ]) volume(x, z, 26, 4, 13);
+  }
+  // Grounded campus spine and entrance approaches. Preserve the sweeping curve
+  // language while removing the elevated ribbon that cut through the workshop.
+  const transit = walkway([
+    [-68, .78, 30],
+    [-42, .78, 27],
+    [-20, .78, 25],
+    [-2, .78, 28],
+    [19, .78, 29],
+    [39, .78, 36],
+    [40, .78, 49],
+    [29, .78, 58],
+    [6, .78, 60],
+    [-12, .78, 59],
+    [-30, .78, 57],
+    [-53, .78, 42]
+  ], 3.4, true);
   [
-    [-49, -26, 13, 23, 12],
-    [-23, -38, 14, 26, 12],
-    [3, -47, 16, 20, 13],
-    [30, -40, 13, 26, 12],
-    [48, -15, 11, 18, 15],
-    [-53, 8, 10, 14, 15],
-    [-37, -57, 14, 17, 11],
-    [37, -58, 11, 15, 12],
-    [-62, -10, 9, 12, 12],
-  ].forEach((args) => building(...args));
-  if (!mobile)
     [
-      [-60, -100, 18, 26, 17],
-      [-30, -112, 13, 33, 13],
-      [7, -125, 17, 39, 15],
-      [39, -118, 16, 29, 16],
-      [67, -92, 16, 24, 14],
-      [-92, -64, 17, 18, 14],
-      [98, -55, 14, 21, 15],
-    ].forEach((args) => building(...args));
-
-  // Public learning plaza: seating, a reflecting pool, work tables, and people.
-  disk(porcelain, -6, 0.8, 52, 16, 0.4);
-  disk(dark, -8, 1.05, 43, 6, 0.12);
-  disk(water, -8, 1.13, 43, 5.5, 0.12);
-  const sculpture = mesh(
-    geometry(new T.TorusGeometry(3, 0.18, 8, 48)),
-    porcelain,
-    [-8, 4.5, 43],
-  );
-  sculpture.rotation.y = 0.4;
-  [-10, 0, 9].forEach((x, i) => {
-    const z = 56 + (i % 2) * 5;
-    block(stone, x, 1.6, z, 4, 0.3, 1.6);
-    block(dark, x, 1.15, z, 2.8, 0.6, 0.8);
-    block(glass, x, 2.05, z, 1, 0.65, 0.08);
-    block(porcelain, x, 1.84, z + 0.4, 1, 0.04, 0.6);
-    block(porcelain, x, 1.05, z + 2, 4, 0.4, 0.7);
-  });
-  function tree(x, z, size = 1) {
-    disk(stone, x, 0.85, z, 1.8 * size, 0.4);
-    instance(
-      cylinder,
-      dark,
-      x,
-      2.2 * size,
-      z,
-      0.16 * size,
-      3 * size,
-      0.16 * size,
-    );
-    // Broad, overlapping crowns soften the silhouette without alpha foliage.
-    instance(sphere, green, x, 4.1 * size, z, 1.25 * size, 1.2 * size, 1.2 * size);
-    instance(sphere, green, x - 0.85 * size, 3.55 * size, z + 0.2 * size, 1.1 * size, 0.85 * size, 1.0 * size);
-    instance(sphere, green, x + 0.7 * size, 3.6 * size, z - 0.3 * size, 1.05 * size, 0.95 * size, 1.15 * size);
+      [-23, .79, 20],
+      [-23, .79, 24],
+      [-21, .79, 26]
+    ],
+    [
+      [27, .79, 22],
+      [27, .79, 28],
+      [25, .79, 30]
+    ],
+    [
+      [22, .79, 56],
+      [22, .79, 59],
+      [12, .79, 60]
+    ],
+    [
+      [-8, .79, 57],
+      [-1, .79, 52],
+      [0, .79, 43],
+      [-1, .79, 34],
+      [-3, .79, 22],
+      [-5, .79, 6],
+      [7, .79, -1]
+    ],
+    [
+      [44, .79, 40],
+      [53, .79, 48],
+      [53, .79, 59],
+      [57, .79, 78]
+    ],
+    [
+      [59, .79, 68.2],
+      [59, .79, 71],
+      [55.5, .79, 71]
+    ],
+    [
+      [-55, .79, 28],
+      [-61, .79, 9],
+      [-61, .79, -22],
+      [-40, .79, -22]
+    ],
+    [
+      [-20, .79, -25],
+      [-7, .79, -32],
+      [20, .79, -31],
+      [50, .79, -5],
+      [51, .79, 27]
+    ],
+    [
+      [-41, .79, 72],
+      [-34, .79, 66],
+      [-30, .79, 58]
+    ]
+  ].forEach((points) => walkway(points, 2.4));
+  // Garden rooms occupy the space between buildings; the promenade remains
+  // generous, but the campus no longer sits on an undifferentiated blue disk.
+  for (const [x, z, w, d] of [
+    [4, 11, 12, 15],
+    [-12, 8, 5, 13],
+    [-43, -17, 10, 7],
+    [-19, -30, 10, 5],
+    [22, -45, 5, 16],
+    [18, 79, 22, 9],
+    [-58, 60, 13, 9]
+  ]) {
+    block(path, x, .735, z, w + .3, .07, d + .3);
+    block(lawn, x, .79, z, w, .06, d);
   }
-  for (let i = 0; i < (mobile ? 28 : 60); i++) {
-    const a = i * 2.39996;
-    const radius = 61 + Math.sin(i * 8) * 9;
-    const x = Math.cos(a) * radius,
-      z = 12 + Math.sin(a) * radius;
-    if (!(x > -24 && x < 30 && z > 55)) tree(x, z, 0.7 + (i % 4) * 0.12);
-  }
-  [
-    [-22, 48],
-    [-20, 58],
-    [10, 49],
-    [10, 68],
-    [32, 61],
-    [-45, 21],
-    [-41, 18],
-    [11, 27],
-  ].forEach(([x, z]) => tree(x, z));
-  // Four monuments follow a walkable arc at the edge of the public plaza.
-  const monumentPositions = [
-    [-27, 57],
-    [-35, 53],
-    [-43, 47],
-    [-49, 39],
-  ];
+  // A slim low wall and three small groves edge the southern common lawn.
+  block(stone, 18, .95, 74.3, 22, .5, .4);
+  grove(10, 77, 5, 2.5, [.8, .9]);
+  grove(23, 78, 6, 2.5, [.9, 1, .85]);
+  grove(5, 12, 5, 3, [.95, .85]);
+  grove(-58, 60, 7, 2.6, [.9, 1, .95]);
+  // REFLECTION PLAZA: retained ring anchored to a plinth in a quiet rectangular
+  // pool. Seating and paving joints establish scale without oversized props.
+  block(path, -8, .77, 47, 25, .16, 20);
+  block(dark, -8, .93, 42, 13, .32, 7);
+  block(water, -8, 1.105, 42, 12.4, .04, 6.4);
+  block(stone, -8, 1.25, 42, 5, .4, 1.4);
+  const sculpture = mesh(geometry(new T.TorusGeometry(2.9, .14, 8, 64)), panel, [-8, 4.18, 42]);
+  sculpture.rotation.y = .4;
+  sculpture.castShadow = true;
+  for (const z of [49, 52, 55]) block(stone, -8, .86, z, 24, .018, .035);
+  for (const [x, z] of [
+    [-17, 53],
+    [-10, 55],
+    [-2, 55],
+    [4, 50]
+  ]) bench(x, z);
+  grove(-23, 43, 3, 7, [.9, 1]);
+  grove(-16, 64, 7, 2.6, [.8, .92, .86]);
+  grove(4, 47, 3.1, 5, [.8, .92]);
   const monumentLights = [];
-  monumentPositions.forEach(([x, z], index) => {
-    block(stone, x, 0.85, z, 4, 0.5, 3);
-    block(porcelain, x, 3.4, z, 2.3, 5.4, 0.65);
-    const lightMaterial = material({
+  [
+    [-27, 53],
+    [-34, 49],
+    [-40, 43],
+    [-44, 36]
+  ].forEach(([x, z]) => {
+    block(stone, x, .88, z, 2.8, .36, 1.8);
+    block(panel, x, 2.65, z, 1.05, 3.3, .4);
+    const m = material({
       color: "#5095c5",
       emissive: "#2c93ee",
-      emissiveIntensity: 0.4,
+      emissiveIntensity: .3
     });
-    block(lightMaterial, x, 3.5, z + 0.34, 0.1, 4.5, 0.06);
-    monumentLights.push(lightMaterial);
+    block(m, x, 2.65, z + .22, .06, 2.6, .04);
+    monumentLights.push(m);
   });
-  line(
-    [
-      [-23, 0.9, 62],
-      [-31, 0.9, 57],
-      [-40, 0.9, 51],
-      [-49, 0.9, 43],
-      [-55, 0.9, 34],
-    ],
+  walkway([
+    [-25, .79, 56],
+    [-34, .79, 52],
+    [-42, .79, 45],
+    [-47, .79, 36]
+  ], 2.3);
+  // Authored groves, no polar-noise distribution or arbitrary crown scaling.
+  for (const [x, z, w, d] of [
+    [-55, 37, 7, 3],
+    [-62, 3, 3, 7],
+    [-44, -20, 8, 3],
+    [-15, -27, 6, 3],
+    [25, -31, 7, 3],
+    [54, 26, 3, 8],
+    [53, 45, 3, 7],
+    [36, 72, 8, 3],
+    [-31, 74, 6, 3]
+  ]) grove(x, z, w, d);
+  if (!mobile) for (const [x, z, w, d] of [
+    [-65, 53, 6, 3],
+    [68, 41, 3, 7],
+    [-57, -43, 8, 3],
+    [22, -59, 7, 3],
+    [52, -42, 6, 3]
+  ]) grove(x, z, w, d);
+  for (const [x, z] of [
+    [-35, 28],
+    [-13, 28],
+    [8, 31],
+    [33, 33],
+    [43, 43],
+    [32, 60],
+    [4, 63],
+    [-27, 60],
+    [-52, 40]
+  ]) bollard(x, z);
+  const signalGeometry = geometry(new T.SphereGeometry(.065, 6, 4));
+  const signals = Array.from({ length: mobile ? 2 : 4 }, () => mesh(signalGeometry, blue));
+  const unshadowed = [
     blue,
-    0.09,
-  );
-
-  // Distant academic wings fade into the same blue-hour atmosphere.
-  if (!mobile) {
-    [[-80,-157,12,34,15],[-44,-182,15,45,17],[0,-192,13,37,14],[43,-170,16,49,13],[91,-145,12,32,14]].forEach(args=>building(...args));
-  }
-  // Foreground architecture belongs to the campus perimeter, so it remains
-  // visible again in the final aerial. These facades pass close to the camera.
-  building(60, 69, 12, 40, 15);
-  for(let x=54;x<=66;x+=1.5) block(metal,x,22,76.8,0.13,38,0.5);
-  block(stone,60,41.9,69,11,0.3,14);
-  block(glass,60,43.2,66,8,2.4,7);
-  building(-40, 69, 13, 26, 14);
-  building(70, 26, 9, 30, 15);
-  block(metal, 52, 19, 62, 29, 0.7, 3.5);
-  block(glass, 52, 20, 62, 29, 1.2, 2.8);
-  block(blue, 52, 19.45, 63.8, 29, 0.07, 0.08);
-  [38, 66].forEach(x => block(stone, x, 9.5, 62, 0.5, 19, 0.5));
-  // The paths converge in the public plaza, physically connecting each idea.
-  [
-    [[-26, 0.8, 20], [-28, 0.8, 33], [-8, 0.8, 52]],
-    [[26, 0.8, 24], [15, 0.8, 31], [-8, 0.8, 52]],
-    [[22, 0.8, 54], [9, 0.8, 61], [-8, 0.8, 52]],
-  ].forEach(points => { walkway(points, path, 2.5); line(points.map(([x,y,z]) => [x,y+0.04,z]), blue, 0.035); });
-  for(let i=0;i<4;i++) disk(i % 2 ? stone : dark, -8, 0.65+i*0.16, 43, 10-i*1.1, 0.17);
-  // Calm information pulses along the elevated learning path.
-  const signals = Array.from({length: mobile ? 2 : 4}, () => {
-    const signal = mesh(sphere, blue, [0,0,0]); signal.scale.setScalar(0.16); return signal;
-  });
-  for (let i=0;i<18;i++) {
-    const angle=i/18*Math.PI*2;
-    const x=22+Math.cos(angle)*17, z=44+Math.sin(angle)*17;
-    if (x > 34 && z > 55) continue;
-    tree(x,z,0.8+(i%3)*0.2);
-    block(dark,x+1.8,1.5,z,0.12,2,0.12);
-    block(warm,x+1.8,2.55,z,0.25,0.13,0.25);
-  }
+    interior,
+    clearGlass,
+    water,
+    ...districtLights.map((d) => d.material),
+    ...monumentLights
+  ];
   for (const { g, m, transforms } of batches.values()) {
     const batch = new T.InstancedMesh(g, m, transforms.length);
     transforms.forEach((matrix, i) => batch.setMatrixAt(i, matrix));
-    batch.castShadow = m !== blue;
+    batch.castShadow = !unshadowed.includes(m);
     batch.receiveShadow = true;
+    batch.computeBoundingSphere();
     scene.add(batch);
+    objects.push(batch);
   }
   return {
     update(time, progress, hover) {
-      const motion = 1 - T.MathUtils.smoothstep(progress, 0.86, 1);
+      const motion = 1 - T.MathUtils.smoothstep(progress, .86, 1);
       signals.forEach((signal, i) => {
-        transit.getPoint((time * 0.012 + i / signals.length) % 1, signal.position);
-        signal.position.y += 0.14;
-        signal.visible = motion > 0.05;
+        transit.getPoint((time * .012 + i / signals.length) % 1, signal.position);
+        signal.position.y += .07;
+        signal.visible = motion > .05;
       });
-      blue.emissiveIntensity =
-        0.5 + Math.sin(time * 0.6) * 0.05 * motion + (hover ? 0.1 : 0);
+      blue.emissiveIntensity = .4 + Math.sin(time * .6) * .035 * motion + (hover ? .08 : 0);
       districtLights.forEach(({ id, material: light }) => {
-        const arrival = { learn: 0.30, build: 0.43, guide: 0.55 }[id];
-        light.emissiveIntensity = 0.4 + Math.max(0, 1 - Math.abs(progress - arrival) / 0.1) * 0.6;
+        const arrival = {
+          learn: .3,
+          build: .43,
+          guide: .55
+        }[id];
+        light.emissiveIntensity = .3 + Math.max(0, 1 - Math.abs(progress - arrival) / .1) * .45;
       });
       monumentLights.forEach((m, i) => {
-        m.emissiveIntensity =
-          0.25 +
-          Math.max(0, 1 - Math.abs(progress - (0.765 + i * 0.035)) / 0.025) *
-            1.4;
+        m.emissiveIntensity = .25 + Math.max(0, 1 - Math.abs(progress - (.765 + i * .035)) / .025) * 1.1;
       });
     },
     dispose() {
       disposed = true;
+      objects.forEach((obj) => {
+        scene.remove(obj);
+        if (obj.isInstancedMesh) obj.dispose();
+      });
       geometries.forEach((g) => g.dispose());
       materials.forEach((m) => m.dispose());
       textures.forEach((t) => t.dispose());
-    },
+    }
   };
 }

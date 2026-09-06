@@ -233,6 +233,8 @@ export default function MissionPage() {
       height = 1,
       offset = 0;
     const measure = () => {
+      // A queued resize can arrive after React detaches the route's DOM.
+      if (!rail.current) return;
       height = Math.max(1, rail.current.offsetHeight - window.innerHeight);
       offset = rail.current.offsetTop;
     };
