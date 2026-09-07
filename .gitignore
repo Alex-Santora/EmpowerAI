@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .mission-qa/
+data/raw/*
+!data/raw/.gitkeep
+.venv-gis/

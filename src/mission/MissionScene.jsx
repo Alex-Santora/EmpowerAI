@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as T from "three";
-import { createCity } from "./city";
+import { createBostonCity } from "./bostonCity";
 import { createCameraRig } from "./camera";
 
 export default function MissionScene({ journey, onReady, onFailure, still = false }) {
@@ -9,9 +9,11 @@ export default function MissionScene({ journey, onReady, onFailure, still = fals
     const element = host.current;
     let renderer, city, environment, frame, observer;
     let disposed = false;
+    const controller = new AbortController();
     const cleanups = [];
     const cleanup = () => {
       disposed = true;
+      controller.abort();
       cancelAnimationFrame(frame);
       observer?.disconnect();
       cleanups.forEach((fn) => fn());
@@ -21,7 +23,11 @@ export default function MissionScene({ journey, onReady, onFailure, still = fals
       renderer?.forceContextLoss();
       renderer?.domElement.remove();
     };
-    try {
+    const initialize = async () => { try {
+      const response = await fetch(`${import.meta.env.BASE_URL}world/boston-layout.json`, { signal: controller.signal });
+      if (!response.ok) throw new Error(`City layout: ${response.status}`);
+      const layout = await response.json();
+      if (disposed) return;
       let mobile = element.clientWidth <= 700;
       renderer = new T.WebGLRenderer({ antialias: !mobile, alpha: false, powerPreference: "high-performance" });
       renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.2 : 1.5));
@@ -35,7 +41,7 @@ export default function MissionScene({ journey, onReady, onFailure, still = fals
       element.appendChild(renderer.domElement);
       const scene = new T.Scene();
       scene.background = new T.Color("#071321");
-      scene.fog = new T.FogExp2("#0c2035", 0.0055);
+      scene.fog = new T.FogExp2("#071321", 0.0055);
       // Small procedural reflection map: a dark sky and one broad studio strip.
       const canvas = document.createElement("canvas");
       canvas.width = 256; canvas.height = 128;
@@ -70,7 +76,9 @@ export default function MissionScene({ journey, onReady, onFailure, still = fals
       garden.position.set(20, 9, 44); scene.add(garden);
       const plaza = new T.PointLight("#7adacb", 45, 46, 1.5);
       plaza.position.set(-8, 10, 43); scene.add(plaza);
-      city = createCity(scene, mobile);
+      const massing = import.meta.env.DEV && new URLSearchParams(location.search).has('massing');
+      city = createBostonCity(scene, mobile, layout, { massing });
+      let builtMobile = mobile;
       const rig = createCameraRig(camera);
       const pointer = new T.Vector2(), easedPointer = new T.Vector2();
       let width = 1, height = 1, previous = 0, elapsed = 0;
@@ -83,6 +91,11 @@ export default function MissionScene({ journey, onReady, onFailure, still = fals
       const resize = () => {
         width = element.clientWidth; height = element.clientHeight;
         mobile = width <= 700;
+        if (mobile !== builtMobile) {
+          city.dispose();
+          city = createBostonCity(scene, mobile, layout, { massing });
+          builtMobile = mobile;
+        }
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(renderer.getPixelRatio(), devicePixelRatio, mobile ? 1.2 : 1.5));
         renderer.shadowMap.enabled = !mobile;
@@ -142,9 +155,11 @@ export default function MissionScene({ journey, onReady, onFailure, still = fals
       if (!still) frame = requestAnimationFrame(draw);
       onReady();
     } catch (error) {
+      if (disposed) return;
       console.warn("Mission city is unavailable; using the reading experience.", error);
       cleanup(); onFailure();
-    }
+    } };
+    initialize();
     return cleanup;
   }, [journey, onFailure, onReady, still]);
   return <div className="mission-scene" ref={host} aria-hidden="true" />;

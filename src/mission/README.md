@@ -1,5 +1,9 @@
 # FutureWithAI Mission — continuous campus journey
 
+## September 7, 2026 — Boston-derived educational district
+
+The active environment now uses locally preprocessed OpenStreetMap geometry and original FutureWithAI architecture. See [BOSTON-WORLD.md](./BOSTON-WORLD.md) for the implementation audit, importer commands, source attribution, geometry checkpoint, camera adjustments, architectural families, mobile strategy and verification. The previous `city.js` is preserved unchanged; `bostonCity.js` is the active renderer. The records below describe earlier versions.
+
 ## September 6, 2026 — architecture refinement
 
 This pass refines the existing world in `city.js`. The supplied 23.47-second screen recording was reviewed from beginning to end through sequential local frames before editing. It showed repeated window dots, disconnected workshop elements, dominant tree crowns, and a repetitive skyline. The original camera, chapter timings, copy, typography, overlays, navigation, palette, renderer, and fallback strategy were retained. `MissionPage.jsx` has only a null guard for a resize callback arriving after route teardown; the scroll calculations are unchanged.
