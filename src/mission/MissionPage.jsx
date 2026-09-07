@@ -184,6 +184,7 @@ function ChapterContent({ chapter }) {
           Donate
         </a>
         <small>© 2026 FutureWithAI Foundation.</small>
+        <small className="mission-map-credit">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></small>
       </footer>
     </>
   );
